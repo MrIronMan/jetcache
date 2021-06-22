@@ -191,6 +191,8 @@
         <module>jetcache-starter/jetcache-starter-redis</module>
         <module>jetcache-starter/jetcache-starter-redis-lettuce</module>
         <module>jetcache-starter/jetcache-starter-redis-springdata</module>
+        <module>jetcache-support/jetcache-redis-redisson</module>
+        <module>jetcache-starter/jetcache-starter-redis-redisson</module>
     </modules>
 
     <properties>
@@ -203,6 +205,7 @@
         <spring.boot.version>2.2.5.RELEASE</spring.boot.version>
         <lettuce.version>5.2.2.RELEASE</lettuce.version>
         <jedis.version>3.1.0</jedis.version>
+        <redisson.stater.version>3.12.2</redisson.stater.version>
 
         <!--
         <spring.framework.version>5.1.6.RELEASE</spring.framework.version>
@@ -291,6 +294,12 @@
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-starter</artifactId>
                 <version>${spring.boot.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.redisson</groupId>
+                <artifactId>redisson-spring-boot-starter</artifactId>
+                <version>${redisson.stater.version}</version>
             </dependency>
 
             <dependency>

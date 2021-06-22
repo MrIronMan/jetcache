@@ -13,6 +13,8 @@ public interface SerialPolicy {
 
     String KRYO = "KRYO";
 
+    String FASTJSON = "FASTJSON";
+
     Function<Object, byte[]> encoder();
 
     Function<byte[], Object> decoder();

@@ -248,6 +248,7 @@ public class CacheHandler implements InvocationHandler {
                 }
             };
             Object result = cache.computeIfAbsent(key, loader);
+
             return result;
         } catch (CacheInvokeException e) {
             throw e.getCause();
