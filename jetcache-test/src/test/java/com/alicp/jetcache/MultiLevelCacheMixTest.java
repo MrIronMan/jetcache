@@ -100,19 +100,19 @@ public class MultiLevelCacheMixTest {
 
     private void simpleTest() {
         cache.put("SIMPLE_K1", "V1");
-        assertEquals("V1", l1Cache.get("SIMPLE_K1"));
-        assertEquals("V1", l2Cache.get("SIMPLE_K1"));
+        assertEquals("V1", l1Cache.get("SIMPLE_K1", String.class));
+        assertEquals("V1", l2Cache.get("SIMPLE_K1", String.class));
         cache.remove("SIMPLE_K1");
 
         l1Cache.put("SIMPLE_K2", "V2");
-        assertEquals("V2", cache.get("SIMPLE_K2"));
-        assertNull(l2Cache.get("SIMPLE_K2"));
+        assertEquals("V2", cache.get("SIMPLE_K2", String.class));
+        assertNull(l2Cache.get("SIMPLE_K2", String.class));
         cache.remove("SIMPLE_K2");
 
         l2Cache.put("SIMPLE_K3", "V3");
-        assertNull(l1Cache.get("SIMPLE_K3"));
-        assertEquals("V3", cache.get("SIMPLE_K3"));
-        assertEquals("V3", l1Cache.get("SIMPLE_K3"));
+        assertNull(l1Cache.get("SIMPLE_K3", String.class));
+        assertEquals("V3", cache.get("SIMPLE_K3", String.class));
+        assertEquals("V3", l1Cache.get("SIMPLE_K3", String.class));
         cache.remove("SIMPLE_K3");
     }
 
@@ -165,13 +165,13 @@ public class MultiLevelCacheMixTest {
     }
 
     private void withCacheValueHolderOfCacheValueHolder(Cache c, Set s) {
-        CacheGetResult<Object> r1 = c.GET("MIX_K1");
-        CacheGetResult<Object> r2 = c.GET("MIX_K2");
+        CacheGetResult<Object> r1 = c.GET("MIX_K1", String.class);
+        CacheGetResult<Object> r2 = c.GET("MIX_K2", String.class);
 
         assertTrue(r1.getHolder().getValue() instanceof CacheValueHolder);
         assertTrue(r2.getHolder().getValue() instanceof CacheValueHolder);
 
-        MultiGetResult<Object, Object> multiResult = c.GET_ALL(s);
+        MultiGetResult<Object, Object> multiResult = c.GET_ALL(s, String.class);
         assertTrue(multiResult.isSuccess());
         assertTrue(multiResult.getValues().get("MIX_K1").isSuccess());
         assertEquals("V1", multiResult.getValues().get("MIX_K1").getValue());
@@ -185,13 +185,13 @@ public class MultiLevelCacheMixTest {
     }
 
     private void withCacheValueHolder(Cache c, Set s) {
-        CacheGetResult<Object> r1 = c.GET("MIX_K1");
-        CacheGetResult<Object> r2 = c.GET("MIX_K2");
+        CacheGetResult<Object> r1 = c.GET("MIX_K1", String.class);
+        CacheGetResult<Object> r2 = c.GET("MIX_K2", String.class);
 
         assertTrue(r1.getHolder().getValue() instanceof String);
         assertNull(r2.getHolder().getValue());
 
-        MultiGetResult<Object, Object> multiResult = c.GET_ALL(s);
+        MultiGetResult<Object, Object> multiResult = c.GET_ALL(s, String.class);
         assertTrue(multiResult.isSuccess());
         assertTrue(multiResult.getValues().get("MIX_K1").isSuccess());
         assertEquals("V1", multiResult.getValues().get("MIX_K1").getValue());

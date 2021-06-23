@@ -16,7 +16,7 @@ public class CreateCacheInitTestBean {
     public void doTest() {
         Assert.assertNotNull(cache);
         Assert.assertTrue(cache.PUT("K1", "V1").isSuccess());
-        Assert.assertEquals("V1", cache.get("K1"));
+        Assert.assertEquals("V1", cache.get("K1", String.class));
 
     }
 

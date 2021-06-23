@@ -33,9 +33,9 @@ public class LinkedHashMapCacheTest extends AbstractEmbeddedCacheTest {
                 .buildFunc(getBuildFunc()).expireAfterWrite(2000, TimeUnit.MILLISECONDS).limit(3).buildCache();
         cache.put("K1", "V1", 1, TimeUnit.MILLISECONDS);
         Thread.sleep(1);
-        Assert.assertEquals(CacheResultCode.EXPIRED, cache.GET("K1").getResultCode());
+        Assert.assertEquals(CacheResultCode.EXPIRED, cache.GET("K1", String.class).getResultCode());
         ((LinkedHashMapCache) cache).cleanExpiredEntry();
-        Assert.assertEquals(CacheResultCode.NOT_EXISTS, cache.GET("K1").getResultCode());
+        Assert.assertEquals(CacheResultCode.NOT_EXISTS, cache.GET("K1", String.class).getResultCode());
     }
 
 }

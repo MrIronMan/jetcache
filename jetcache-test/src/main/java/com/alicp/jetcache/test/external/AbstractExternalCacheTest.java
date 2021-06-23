@@ -23,8 +23,8 @@ public class AbstractExternalCacheTest extends AbstractCacheTest {
             d2.setName("HL");
 
             cache.put(d1, "V1");
-            Assert.assertEquals("V1", cache.get(d2));
-            Assert.assertNull(cache.get(d3));
+            Assert.assertEquals("V1", cache.get(d2, String.class));
+            Assert.assertNull(cache.get(d3, String.class));
         }
 
         {
@@ -38,8 +38,8 @@ public class AbstractExternalCacheTest extends AbstractCacheTest {
             d2.setName("HL2");
 
             cache.put(d1, "V2");
-            Assert.assertNull("V2", cache.get(d2));
-            Assert.assertNull(cache.get(d3));
+            Assert.assertNull("V2", cache.get(d2, String.class));
+            Assert.assertNull(cache.get(d3, String.class));
         }
     }
 }

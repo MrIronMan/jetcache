@@ -7,6 +7,7 @@ import com.alicp.jetcache.anno.CacheRefresh;
 import com.alicp.jetcache.anno.CreateCache;
 import com.alicp.jetcache.anno.method.CacheConfigUtil;
 import com.alicp.jetcache.anno.support.*;
+import java.lang.reflect.Type;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 
 import java.lang.reflect.Field;
@@ -99,45 +100,45 @@ class LazyInitCache implements ProxyCache {
     }
 
     @Override
-    public Object get(Object key) {
+    public Object get(Object key, Type valueType) {
         checkInit();
-        return cache.get(key);
+        return cache.get(key, valueType);
     }
 
     @Override
-    public Map getAll(Set keys) {
+    public Map getAll(Set keys, Type valueType) {
         checkInit();
-        return cache.getAll(keys);
+        return cache.getAll(keys, valueType);
     }
 
     @Override
-    public CacheGetResult GET(Object key) {
+    public CacheGetResult GET(Object key, Type valueType) {
         checkInit();
-        return cache.GET(key);
+        return cache.GET(key, valueType);
     }
 
     @Override
-    public MultiGetResult GET_ALL(Set keys) {
+    public MultiGetResult GET_ALL(Set keys, Type valueType) {
         checkInit();
-        return cache.GET_ALL(keys);
+        return cache.GET_ALL(keys, valueType);
     }
 
     @Override
-    public Object computeIfAbsent(Object key, Function loader) {
+    public Object computeIfAbsent(Object key, Type valueType, Function loader) {
         checkInit();
-        return cache.computeIfAbsent(key, loader);
+        return cache.computeIfAbsent(key, valueType, loader);
     }
 
     @Override
-    public Object computeIfAbsent(Object key, Function loader, boolean cacheNullWhenLoaderReturnNull) {
+    public Object computeIfAbsent(Object key, Type valueType, Function loader, boolean cacheNullWhenLoaderReturnNull) {
         checkInit();
-        return cache.computeIfAbsent(key, loader, cacheNullWhenLoaderReturnNull);
+        return cache.computeIfAbsent(key, valueType, loader, cacheNullWhenLoaderReturnNull);
     }
 
     @Override
-    public Object computeIfAbsent(Object key, Function loader, boolean cacheNullWhenLoaderReturnNull, long expireAfterWrite, TimeUnit timeUnit) {
+    public Object computeIfAbsent(Object key, Type valueType, Function loader, boolean cacheNullWhenLoaderReturnNull, long expireAfterWrite, TimeUnit timeUnit) {
         checkInit();
-        return cache.computeIfAbsent(key, loader, cacheNullWhenLoaderReturnNull, expireAfterWrite, timeUnit);
+        return cache.computeIfAbsent(key, valueType, loader, cacheNullWhenLoaderReturnNull, expireAfterWrite, timeUnit);
     }
 
     @Override
@@ -219,15 +220,15 @@ class LazyInitCache implements ProxyCache {
     }
 
     @Override
-    public AutoReleaseLock tryLock(Object key, long expire, TimeUnit timeUnit) {
+    public AutoReleaseLock tryLock(Object key, Type valueType, long expire, TimeUnit timeUnit) {
         checkInit();
-        return cache.tryLock(key, expire, timeUnit);
+        return cache.tryLock(key, valueType, expire, timeUnit);
     }
 
     @Override
-    public boolean tryLockAndRun(Object key, long expire, TimeUnit timeUnit, Runnable action) {
+    public boolean tryLockAndRun(Object key, Type valueType, long expire, TimeUnit timeUnit, Runnable action) {
         checkInit();
-        return cache.tryLockAndRun(key, expire, timeUnit, action);
+        return cache.tryLockAndRun(key, valueType, expire, timeUnit, action);
     }
 
     @Override

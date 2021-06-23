@@ -2,6 +2,7 @@ package com.alicp.jetcache.redis.springdata;
 
 import com.alicp.jetcache.*;
 import com.alicp.jetcache.external.AbstractExternalCache;
+import java.lang.reflect.Type;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.redis.RedisConnectionFailureException;
@@ -51,7 +52,7 @@ public class RedisSpringDataCache<K, V> extends AbstractExternalCache<K, V> {
     }
 
     @Override
-    protected CacheGetResult<V> do_GET(K key) {
+    protected CacheGetResult<V> do_GET(K key, Type valueType) {
         RedisConnection con = null;
         try {
             con = connectionFactory.getConnection();
@@ -75,7 +76,7 @@ public class RedisSpringDataCache<K, V> extends AbstractExternalCache<K, V> {
     }
 
     @Override
-    protected MultiGetResult<K, V> do_GET_ALL(Set<? extends K> keys) {
+    protected MultiGetResult<K, V> do_GET_ALL(Set<? extends K> keys, Type valueType) {
         RedisConnection con = null;
         try {
             con = connectionFactory.getConnection();

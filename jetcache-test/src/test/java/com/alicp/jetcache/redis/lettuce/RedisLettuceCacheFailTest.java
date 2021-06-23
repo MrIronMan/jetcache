@@ -67,11 +67,11 @@ public class RedisLettuceCacheFailTest {
     public void test_GET() {
         when(asyncCommands.get(any())).thenThrow(new RuntimeException("err"))
                 .thenReturn(mockFuture(null, new RuntimeException()));
-        CacheGetResult cr = cache.GET("K");
+        CacheGetResult cr = cache.GET("K", String.class);
         assertEquals(CacheResultCode.FAIL, cr.getResultCode());
         assertNull(cr.getValue());
 
-        cr = cache.GET("K");
+        cr = cache.GET("K", String.class);
         assertEquals(CacheResultCode.FAIL, cr.getResultCode());
         assertNull(cr.getValue());
     }
@@ -83,11 +83,11 @@ public class RedisLettuceCacheFailTest {
         HashSet s = new HashSet();
         s.add("K");
 
-        MultiGetResult cr = cache.GET_ALL(s);
+        MultiGetResult cr = cache.GET_ALL(s, String.class);
         assertEquals(CacheResultCode.FAIL, cr.getResultCode());
         assertNull(cr.getValues());
 
-        cr = cache.GET_ALL(s);
+        cr = cache.GET_ALL(s, String.class);
         assertEquals(CacheResultCode.FAIL, cr.getResultCode());
         assertNull(cr.getValues());
     }

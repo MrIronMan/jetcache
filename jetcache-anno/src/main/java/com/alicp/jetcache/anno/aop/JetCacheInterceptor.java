@@ -23,8 +23,6 @@ import java.lang.reflect.Method;
  */
 public class JetCacheInterceptor implements MethodInterceptor, ApplicationContextAware {
 
-    //private static final Logger logger = LoggerFactory.getLogger(JetCacheInterceptor.class);
-
     @Autowired
     private ConfigMap cacheConfigMap;
     private ApplicationContext applicationContext;
@@ -56,16 +54,6 @@ public class JetCacheInterceptor implements MethodInterceptor, ApplicationContex
             cac  = cacheConfigMap.getByMethodInfo(key);
         }
 
-        /*
-        if(logger.isTraceEnabled()){
-            logger.trace("JetCacheInterceptor invoke. foundJetCacheConfig={}, method={}.{}(), targetClass={}",
-                    cac != null,
-                    method.getDeclaringClass().getName(),
-                    method.getName(),
-                    invocation.getThis() == null ? null : invocation.getThis().getClass().getName());
-        }
-        */
-
         if (cac == null || cac == CacheInvokeConfig.getNoCacheInvokeConfigInstance()) {
             return invocation.proceed();
         }
@@ -77,6 +65,7 @@ public class JetCacheInterceptor implements MethodInterceptor, ApplicationContex
         context.setArgs(invocation.getArguments());
         context.setCacheInvokeConfig(cac);
         context.setHiddenPackages(globalCacheConfig.getHiddenPackages());
+        context.setResultType(method.getGenericReturnType());
         return CacheHandler.invoke(context);
     }
 

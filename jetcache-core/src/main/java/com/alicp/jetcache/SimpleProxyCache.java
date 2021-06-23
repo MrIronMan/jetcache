@@ -1,5 +1,6 @@
 package com.alicp.jetcache;
 
+import java.lang.reflect.Type;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
@@ -29,13 +30,13 @@ public class SimpleProxyCache<K, V> implements ProxyCache<K, V> {
     }
 
     @Override
-    public V get(K key) {
-        return cache.get(key);
+    public V get(K key, Type valueType) {
+        return cache.get(key, valueType);
     }
 
     @Override
-    public Map<K, V> getAll(Set<? extends K> keys) {
-        return cache.getAll(keys);
+    public Map<K, V> getAll(Set<? extends K> keys, Type valueType) {
+        return cache.getAll(keys, valueType);
     }
 
     @Override
@@ -69,38 +70,38 @@ public class SimpleProxyCache<K, V> implements ProxyCache<K, V> {
     }
 
     @Override
-    public AutoReleaseLock tryLock(K key, long expire, TimeUnit timeUnit) {
-        return cache.tryLock(key, expire, timeUnit);
+    public AutoReleaseLock tryLock(K key, Type valueType, long expire, TimeUnit timeUnit) {
+        return cache.tryLock(key, valueType, expire, timeUnit);
     }
 
     @Override
-    public boolean tryLockAndRun(K key, long expire, TimeUnit timeUnit, Runnable action) {
-        return cache.tryLockAndRun(key, expire, timeUnit, action);
+    public boolean tryLockAndRun(K key, Type valueType, long expire, TimeUnit timeUnit, Runnable action) {
+        return cache.tryLockAndRun(key, valueType, expire, timeUnit, action);
     }
 
     @Override
-    public CacheGetResult<V> GET(K key) {
-        return cache.GET(key);
+    public CacheGetResult<V> GET(K key, Type valueType) {
+        return cache.GET(key, valueType);
     }
 
     @Override
-    public MultiGetResult<K, V> GET_ALL(Set<? extends K> keys) {
-        return cache.GET_ALL(keys);
+    public MultiGetResult<K, V> GET_ALL(Set<? extends K> keys, Type valueType) {
+        return cache.GET_ALL(keys, valueType);
     }
 
     @Override
-    public V computeIfAbsent(K key, Function<K, V> loader) {
-        return cache.computeIfAbsent(key, loader);
+    public V computeIfAbsent(K key, Type valueType, Function<K, V> loader) {
+        return cache.computeIfAbsent(key, valueType, loader);
     }
 
     @Override
-    public V computeIfAbsent(K key, Function<K, V> loader, boolean cacheNullWhenLoaderReturnNull) {
-        return cache.computeIfAbsent(key, loader, cacheNullWhenLoaderReturnNull);
+    public V computeIfAbsent(K key, Type valueType, Function<K, V> loader, boolean cacheNullWhenLoaderReturnNull) {
+        return cache.computeIfAbsent(key, valueType, loader, cacheNullWhenLoaderReturnNull);
     }
 
     @Override
-    public V computeIfAbsent(K key, Function<K, V> loader, boolean cacheNullWhenLoaderReturnNull, long expireAfterWrite, TimeUnit timeUnit) {
-        return cache.computeIfAbsent(key, loader, cacheNullWhenLoaderReturnNull, expireAfterWrite, timeUnit);
+    public V computeIfAbsent(K key, Type valueType, Function<K, V> loader, boolean cacheNullWhenLoaderReturnNull, long expireAfterWrite, TimeUnit timeUnit) {
+        return cache.computeIfAbsent(key, valueType, loader, cacheNullWhenLoaderReturnNull, expireAfterWrite, timeUnit);
     }
 
     @Override

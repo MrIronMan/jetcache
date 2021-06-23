@@ -132,8 +132,8 @@ public class CreateCacheTest extends SpringTest {
                 testCacheWithLocalExpire();
 
                 cache1.put("KK1", "V1");
-                Assert.assertNull(cache_A1.get("KK1"));
-                Assert.assertNull(cache2.get("KK1"));
+                Assert.assertNull(cache_A1.get("KK1", String.class));
+                Assert.assertNull(cache2.get("KK1", String.class));
 
                 Assert.assertSame(getTarget(cacheSameName1), getTarget(cacheSameName2));
                 Assert.assertSame(getTarget(cacheSameName1),
@@ -141,8 +141,8 @@ public class CreateCacheTest extends SpringTest {
                 Assert.assertNotSame(getTarget(cacheSameName1), getTarget(cache1));
 
                 cacheSameName1.put("SameKey", "SameValue");
-                Assert.assertEquals(cacheSameName1.get("SameKey"),cacheSameName2.get("SameKey"));
-                Assert.assertNull(cache1.get("SameKey"));
+                Assert.assertEquals(cacheSameName1.get("SameKey", String.class),cacheSameName2.get("SameKey", String.class));
+                Assert.assertNull(cache1.get("SameKey", String.class));
 
                 Assert.assertTrue(getTarget(cache1) instanceof MockRemoteCache);
                 Assert.assertSame(FastjsonKeyConvertor.INSTANCE, cache1.config().getKeyConvertor());
@@ -202,8 +202,8 @@ public class CreateCacheTest extends SpringTest {
                 q3.setId(1000);
                 q3.setName("N1");
                 cacheWithoutConvertor.put(q1, "V");
-                Assert.assertEquals(CacheResultCode.NOT_EXISTS, cacheWithoutConvertor.GET(q2).getResultCode());
-                Assert.assertEquals(CacheResultCode.NOT_EXISTS, cacheWithoutConvertor.GET(q3).getResultCode());
+                Assert.assertEquals(CacheResultCode.NOT_EXISTS, cacheWithoutConvertor.GET(q2, String.class).getResultCode());
+                Assert.assertEquals(CacheResultCode.NOT_EXISTS, cacheWithoutConvertor.GET(q3, String.class).getResultCode());
 
                 DynamicQueryWithEquals dqwe1 = new DynamicQueryWithEquals();
                 dqwe1.setId(1000);
@@ -215,17 +215,17 @@ public class CreateCacheTest extends SpringTest {
                 dqwe3.setId(1000);
                 dqwe3.setName("N1");
                 cacheWithoutConvertor.put(dqwe1, "V");
-                Assert.assertEquals(CacheResultCode.NOT_EXISTS, cacheWithoutConvertor.GET(dqwe2).getResultCode());
-                Assert.assertEquals(CacheResultCode.SUCCESS, cacheWithoutConvertor.GET(dqwe3).getResultCode());
+                Assert.assertEquals(CacheResultCode.NOT_EXISTS, cacheWithoutConvertor.GET(dqwe2, String.class).getResultCode());
+                Assert.assertEquals(CacheResultCode.SUCCESS, cacheWithoutConvertor.GET(dqwe3, String.class).getResultCode());
             }
 
             private int refreshCount;
             private void refreshTest() throws Exception {
                 cacheWithRefresh.config().setLoader((k) -> refreshCount++);
                 cacheWithRefresh.put("K1", "V1");
-                Assert.assertEquals("V1", cacheWithRefresh.get("K1"));
+                Assert.assertEquals("V1", cacheWithRefresh.get("K1", String.class));
                 Thread.sleep((long) (cacheWithRefresh.config().getRefreshPolicy().getRefreshMillis() * 1.5));
-                Assert.assertEquals(0, cacheWithRefresh.get("K1"));
+                Assert.assertEquals(0, cacheWithRefresh.get("K1", String.class));
                 cacheWithRefresh.close();
             }
         }

@@ -1,5 +1,6 @@
 package com.alicp.jetcache;
 
+import java.lang.reflect.Type;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
@@ -74,10 +75,10 @@ public class MultiLevelCache<K, V> extends AbstractCache<K, V> {
     }
 
     @Override
-    protected CacheGetResult<V> do_GET(K key) {
+    protected CacheGetResult<V> do_GET(K key, Type valueType) {
         for (int i = 0; i < caches.length; i++) {
             Cache cache = caches[i];
-            CacheGetResult result = cache.GET(key);
+            CacheGetResult result = cache.GET(key, valueType);
             if (result.isSuccess()) {
                 CacheValueHolder<V> holder = unwrapHolder(result.getHolder());
                 checkResultAndFillUpperCache(key, i, holder);
@@ -117,7 +118,7 @@ public class MultiLevelCache<K, V> extends AbstractCache<K, V> {
     }
 
     @Override
-    protected MultiGetResult<K, V> do_GET_ALL(Set<? extends K> keys) {
+    protected MultiGetResult<K, V> do_GET_ALL(Set<? extends K> keys, Type valueType) {
         HashMap<K, CacheGetResult<V>> resultMap = new HashMap<>();
         Set<K> restKeys = new HashSet<>(keys);
         for (int i = 0; i < caches.length; i++) {
@@ -125,7 +126,7 @@ public class MultiLevelCache<K, V> extends AbstractCache<K, V> {
                 break;
             }
             Cache<K, CacheValueHolder<V>> c = caches[i];
-            MultiGetResult<K, CacheValueHolder<V>> allResult = c.GET_ALL(restKeys);
+            MultiGetResult<K, CacheValueHolder<V>> allResult = c.GET_ALL(restKeys, valueType);
             if (allResult.isSuccess() && allResult.getValues() != null) {
                 for (Map.Entry<K, CacheGetResult<CacheValueHolder<V>>> en : allResult.getValues().entrySet()) {
                     K key = en.getKey();
@@ -229,11 +230,11 @@ public class MultiLevelCache<K, V> extends AbstractCache<K, V> {
     }
 
     @Override
-    public AutoReleaseLock tryLock(K key, long expire, TimeUnit timeUnit) {
+    public AutoReleaseLock tryLock(K key, Type valueType, long expire, TimeUnit timeUnit) {
         if (key == null) {
             return null;
         }
-        return caches[caches.length - 1].tryLock(key, expire, timeUnit);
+        return caches[caches.length - 1].tryLock(key, valueType, expire, timeUnit);
     }
 
     @Override

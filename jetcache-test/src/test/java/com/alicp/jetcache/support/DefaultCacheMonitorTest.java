@@ -28,7 +28,7 @@ public class DefaultCacheMonitorTest {
 
     private static void basetest(Cache cache, DefaultCacheMonitor m) {
         CacheStat oldStat = m.getCacheStat().clone();
-        cache.get("MONITOR_TEST_K1");
+        cache.get("MONITOR_TEST_K1", String.class);
         Assert.assertEquals(oldStat.getGetCount() + 1, m.getCacheStat().getGetCount());
         Assert.assertEquals(oldStat.getGetMissCount() + 1, m.getCacheStat().getGetMissCount());
 
@@ -37,7 +37,7 @@ public class DefaultCacheMonitorTest {
         Assert.assertEquals(oldStat.getPutCount() + 1, m.getCacheStat().getPutCount());
 
         oldStat = m.getCacheStat().clone();
-        cache.get("MONITOR_TEST_K1");
+        cache.get("MONITOR_TEST_K1", String.class);
         Assert.assertEquals(oldStat.getGetCount() + 1, m.getCacheStat().getGetCount());
         Assert.assertEquals(oldStat.getGetHitCount() + 1, m.getCacheStat().getGetHitCount());
 
@@ -46,7 +46,7 @@ public class DefaultCacheMonitorTest {
         Assert.assertEquals(oldStat.getRemoveCount() + 1, m.getCacheStat().getRemoveCount());
 
         oldStat = m.getCacheStat().clone();
-        cache.computeIfAbsent("MONITOR_TEST_K1", (k) -> null);
+        cache.computeIfAbsent("MONITOR_TEST_K1", String.class, (k) -> null);
         Assert.assertEquals(oldStat.getGetCount() + 1, m.getCacheStat().getGetCount());
         Assert.assertEquals(oldStat.getGetMissCount() + 1, m.getCacheStat().getGetMissCount());
         Assert.assertEquals(oldStat.getPutCount(), m.getCacheStat().getPutCount());
@@ -54,7 +54,7 @@ public class DefaultCacheMonitorTest {
         Assert.assertEquals(oldStat.getLoadSuccessCount() + 1, m.getCacheStat().getLoadSuccessCount());
 
         oldStat = m.getCacheStat().clone();
-        cache.computeIfAbsent("MONITOR_TEST_K1", (k) -> null, true);
+        cache.computeIfAbsent("MONITOR_TEST_K1", String.class, (k) -> null, true);
         Assert.assertEquals(oldStat.getGetCount() + 1, m.getCacheStat().getGetCount());
         Assert.assertEquals(oldStat.getGetMissCount() + 1, m.getCacheStat().getGetMissCount());
         Assert.assertEquals(oldStat.getPutCount() + 1, m.getCacheStat().getPutCount());
@@ -62,7 +62,7 @@ public class DefaultCacheMonitorTest {
         Assert.assertEquals(oldStat.getLoadSuccessCount() + 1, m.getCacheStat().getLoadSuccessCount());
 
         oldStat = m.getCacheStat().clone();
-        cache.get("MONITOR_TEST_K1");
+        cache.get("MONITOR_TEST_K1", String.class);
         Assert.assertEquals(oldStat.getGetCount() + 1, m.getCacheStat().getGetCount());
         Assert.assertEquals(oldStat.getGetHitCount() + 1, m.getCacheStat().getGetHitCount());
 
@@ -71,7 +71,7 @@ public class DefaultCacheMonitorTest {
         Assert.assertEquals(oldStat.getRemoveCount() + 1, m.getCacheStat().getRemoveCount());
 
         oldStat = m.getCacheStat().clone();
-        cache.computeIfAbsent("MONITOR_TEST_K2", (k) -> null, false, 10, TimeUnit.SECONDS);
+        cache.computeIfAbsent("MONITOR_TEST_K2", String.class, (k) -> null, false, 10, TimeUnit.SECONDS);
         Assert.assertEquals(oldStat.getGetCount() + 1, m.getCacheStat().getGetCount());
         Assert.assertEquals(oldStat.getGetMissCount() + 1, m.getCacheStat().getGetMissCount());
         Assert.assertEquals(oldStat.getPutCount(), m.getCacheStat().getPutCount());
@@ -79,7 +79,7 @@ public class DefaultCacheMonitorTest {
         Assert.assertEquals(oldStat.getLoadSuccessCount() + 1, m.getCacheStat().getLoadSuccessCount());
 
         oldStat = m.getCacheStat().clone();
-        cache.computeIfAbsent("MONITOR_TEST_K2", (k) -> null, true, 10, TimeUnit.SECONDS);
+        cache.computeIfAbsent("MONITOR_TEST_K2", String.class, (k) -> null, true, 10, TimeUnit.SECONDS);
         Assert.assertEquals(oldStat.getGetCount() + 1, m.getCacheStat().getGetCount());
         Assert.assertEquals(oldStat.getGetMissCount() + 1, m.getCacheStat().getGetMissCount());
         Assert.assertEquals(oldStat.getPutCount() + 1, m.getCacheStat().getPutCount());
@@ -87,7 +87,7 @@ public class DefaultCacheMonitorTest {
         Assert.assertEquals(oldStat.getLoadSuccessCount() + 1, m.getCacheStat().getLoadSuccessCount());
 
         oldStat = m.getCacheStat().clone();
-        cache.get("MONITOR_TEST_K2");
+        cache.get("MONITOR_TEST_K2", String.class);
         Assert.assertEquals(oldStat.getGetCount() + 1, m.getCacheStat().getGetCount());
         Assert.assertEquals(oldStat.getGetHitCount() + 1, m.getCacheStat().getGetHitCount());
 
@@ -105,7 +105,7 @@ public class DefaultCacheMonitorTest {
         oldStat = m.getCacheStat().clone();
         HashSet keys = new HashSet(map.keySet());
         keys.add("MONITOR_TEST_multi_k3");
-        cache.getAll(keys);
+        cache.getAll(keys, String.class);
         Assert.assertEquals(oldStat.getGetCount() + 3, m.getCacheStat().getGetCount());
         Assert.assertEquals(oldStat.getGetHitCount() + 2, m.getCacheStat().getGetHitCount());
         Assert.assertEquals(oldStat.getGetMissCount() + 1, m.getCacheStat().getGetMissCount());

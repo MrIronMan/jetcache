@@ -7,6 +7,7 @@ import com.alicp.jetcache.Cache;
 import com.alicp.jetcache.anno.support.CacheAnnoConfig;
 
 import java.lang.reflect.Method;
+import java.lang.reflect.Type;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 
@@ -20,6 +21,7 @@ public class CacheInvokeContext {
     private CacheInvokeConfig cacheInvokeConfig;
     private Object targetObject;
     private Object result;
+    private Type resultType;
 
     private BiFunction<CacheInvokeContext, CacheAnnoConfig, Cache> cacheFunction;
     private String[] hiddenPackages;
@@ -90,5 +92,13 @@ public class CacheInvokeContext {
 
     public void setResult(Object result) {
         this.result = result;
+    }
+
+    public Type getResultType() {
+        return resultType;
+    }
+
+    public void setResultType(Type resultType) {
+        this.resultType = resultType;
     }
 }

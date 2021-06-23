@@ -2,6 +2,7 @@ package com.alicp.jetcache;
 
 import com.alicp.jetcache.event.CacheEvent;
 
+import java.lang.reflect.Type;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
@@ -27,13 +28,13 @@ public class LoadingCache<K, V> extends SimpleProxyCache<K, V> {
     }
 
     @Override
-    public V get(K key) throws CacheInvokeException {
+    public V get(K key, Type valueType) throws CacheInvokeException {
         CacheLoader<K, V> loader = config.getLoader();
         if (loader != null) {
-            return AbstractCache.computeIfAbsentImpl(key, loader,
+            return AbstractCache.computeIfAbsentImpl(key, valueType, loader,
                     config.isCacheNullValue() ,0, null, this);
         } else {
-            return cache.get(key);
+            return cache.get(key, valueType);
         }
     }
 
@@ -48,10 +49,10 @@ public class LoadingCache<K, V> extends SimpleProxyCache<K, V> {
     }
 
     @Override
-    public Map<K, V> getAll(Set<? extends K> keys) throws CacheInvokeException {
+    public Map<K, V> getAll(Set<? extends K> keys, Type valueType) throws CacheInvokeException {
         CacheLoader<K, V> loader = config.getLoader();
         if (loader != null) {
-            MultiGetResult<K, V> r = GET_ALL(keys);
+            MultiGetResult<K, V> r = GET_ALL(keys, valueType);
             Map<K, V> kvMap;
             if (r.isSuccess() || r.getResultCode() == CacheResultCode.PART_SUCCESS) {
                 kvMap = r.unwrapValues();
@@ -94,13 +95,13 @@ public class LoadingCache<K, V> extends SimpleProxyCache<K, V> {
                             PUT(key, v);
                         }
                     };
-                    V v = AbstractCache.synchronizedLoad(config, abstractCache, key, loader, cacheUpdater);
+                    V v = AbstractCache.synchronizedLoad(config, abstractCache, key, valueType, loader, cacheUpdater);
                     kvMap.put(key, v);
                 }
             }
             return kvMap;
         } else {
-            return cache.getAll(keys);
+            return cache.getAll(keys, valueType);
         }
 
     }

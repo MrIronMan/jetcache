@@ -97,7 +97,7 @@ public class RedisLettuceStarterTest extends SpringTest {
 
             a1SlaveCache.put("K1", "V1");
             Thread.sleep(200);
-            Assert.assertEquals("V1", a1SlaveCache.get("K1"));
+            Assert.assertEquals("V1", a1SlaveCache.get("K1", String.class));
         }
     }
 

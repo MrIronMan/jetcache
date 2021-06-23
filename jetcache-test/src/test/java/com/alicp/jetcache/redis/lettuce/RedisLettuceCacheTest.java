@@ -80,7 +80,7 @@ public class RedisLettuceCacheTest extends AbstractExternalCacheTest {
                 .buildCache();
         cache.put("K1", "V1");
         Thread.sleep(100);
-        Assert.assertEquals("V1", cache.get("K1"));
+        Assert.assertEquals("V1", cache.get("K1", String.class));
     }
 
     @Test
@@ -113,7 +113,7 @@ public class RedisLettuceCacheTest extends AbstractExternalCacheTest {
                 .buildCache();
         cache.put("K1", "V1");
         Thread.sleep(100);
-        Assert.assertEquals("V1", cache.get("K1"));
+        Assert.assertEquals("V1", cache.get("K1", String.class));
     }
 
     @Test

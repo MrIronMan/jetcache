@@ -5,6 +5,7 @@ package com.alicp.jetcache.embedded;
 
 import com.alicp.jetcache.*;
 
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -42,7 +43,7 @@ public abstract class AbstractEmbeddedCache<K, V> extends AbstractCache<K, V> {
     }
 
     @Override
-    protected CacheGetResult<V> do_GET(K key) {
+    protected CacheGetResult<V> do_GET(K key, Type valueType) {
         Object newKey = buildKey(key);
         CacheValueHolder<V> holder = (CacheValueHolder<V>) innerMap.getValue(newKey);
         return parseHolderResult(holder);
@@ -71,7 +72,7 @@ public abstract class AbstractEmbeddedCache<K, V> extends AbstractCache<K, V> {
     }
 
     @Override
-    protected MultiGetResult<K, V> do_GET_ALL(Set<? extends K> keys) {
+    protected MultiGetResult<K, V> do_GET_ALL(Set<? extends K> keys, Type valueType) {
         ArrayList<K> keyList = new ArrayList<K>(keys.size());
         ArrayList<Object> newKeyList = new ArrayList<Object>(keys.size());
         keys.stream().forEach((k) -> {

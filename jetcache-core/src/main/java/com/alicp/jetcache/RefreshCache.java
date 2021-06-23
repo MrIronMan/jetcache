@@ -3,6 +3,7 @@ package com.alicp.jetcache;
 import com.alicp.jetcache.embedded.AbstractEmbeddedCache;
 import com.alicp.jetcache.external.AbstractExternalCache;
 import com.alicp.jetcache.support.JetCacheExecutor;
+import java.lang.reflect.Type;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -49,20 +50,20 @@ public class RefreshCache<K, V> extends LoadingCache<K, V> {
     }
 
     @Override
-    public V computeIfAbsent(K key, Function<K, V> loader) {
-        return computeIfAbsent(key, loader, config().isCacheNullValue());
+    public V computeIfAbsent(K key, Type valueType, Function<K, V> loader) {
+        return computeIfAbsent(key, valueType, loader, config().isCacheNullValue());
     }
 
     @Override
-    public V computeIfAbsent(K key, Function<K, V> loader, boolean cacheNullWhenLoaderReturnNull) {
-        return AbstractCache.computeIfAbsentImpl(key, loader, cacheNullWhenLoaderReturnNull,
+    public V computeIfAbsent(K key, Type valueType, Function<K, V> loader, boolean cacheNullWhenLoaderReturnNull) {
+        return AbstractCache.computeIfAbsentImpl(key, valueType, loader, cacheNullWhenLoaderReturnNull,
                 0, null, this);
     }
 
     @Override
-    public V computeIfAbsent(K key, Function<K, V> loader, boolean cacheNullWhenLoaderReturnNull,
+    public V computeIfAbsent(K key, Type valueType, Function<K, V> loader, boolean cacheNullWhenLoaderReturnNull,
                              long expireAfterWrite, TimeUnit timeUnit) {
-        return AbstractCache.computeIfAbsentImpl(key, loader, cacheNullWhenLoaderReturnNull,
+        return AbstractCache.computeIfAbsentImpl(key, valueType, loader, cacheNullWhenLoaderReturnNull,
                 expireAfterWrite, timeUnit, this);
     }
 
@@ -101,7 +102,7 @@ public class RefreshCache<K, V> extends LoadingCache<K, V> {
         }
     }
 
-    protected void addOrUpdateRefreshTask(K key, CacheLoader<K,V> loader) {
+    protected void addOrUpdateRefreshTask(K key, Type valueType, CacheLoader<K,V> loader) {
         RefreshPolicy refreshPolicy = config.getRefreshPolicy();
         if (refreshPolicy == null) {
             return;
@@ -110,8 +111,8 @@ public class RefreshCache<K, V> extends LoadingCache<K, V> {
         if (refreshMillis > 0) {
             Object taskId = getTaskId(key);
             RefreshTask refreshTask = taskMap.computeIfAbsent(taskId, tid -> {
-                logger.debug("add refresh task. interval={},  key={}", refreshMillis , key);
-                RefreshTask task = new RefreshTask(taskId, key, loader);
+                logger.info("add refresh task. interval={},  key={}", refreshMillis , key);
+                RefreshTask task = new RefreshTask(taskId, key, valueType, loader);
                 task.lastAccessTime = System.currentTimeMillis();
                 ScheduledFuture<?> future = JetCacheExecutor.heavyIOExecutor().scheduleWithFixedDelay(
                         task, refreshMillis, refreshMillis, TimeUnit.MILLISECONDS);
@@ -123,34 +124,36 @@ public class RefreshCache<K, V> extends LoadingCache<K, V> {
     }
 
     @Override
-    public V get(K key) throws CacheInvokeException {
+    public V get(K key, Type valueType) throws CacheInvokeException {
         if (config.getRefreshPolicy() != null && hasLoader()) {
-            addOrUpdateRefreshTask(key, null);
+            addOrUpdateRefreshTask(key, valueType, null);
         }
-        return super.get(key);
+        return super.get(key, valueType);
     }
 
     @Override
-    public Map<K, V> getAll(Set<? extends K> keys) throws CacheInvokeException {
+    public Map<K, V> getAll(Set<? extends K> keys, Type valueType) throws CacheInvokeException {
         if (config.getRefreshPolicy() != null && hasLoader()) {
             for (K key : keys) {
-                addOrUpdateRefreshTask(key, null);
+                addOrUpdateRefreshTask(key, valueType, null);
             }
         }
-        return super.getAll(keys);
+        return super.getAll(keys, valueType);
     }
 
     class RefreshTask implements Runnable {
         private Object taskId;
         private K key;
+        private Type valueType;
         private CacheLoader<K, V> loader;
 
         private long lastAccessTime;
         private ScheduledFuture future;
 
-        RefreshTask(Object taskId, K key, CacheLoader<K, V> loader) {
+        RefreshTask(Object taskId, K key, Type valueType, CacheLoader<K, V> loader) {
             this.taskId = taskId;
             this.key = key;
+            this.valueType = valueType;
             this.loader = loader;
         }
 
@@ -180,7 +183,7 @@ public class RefreshCache<K, V> extends LoadingCache<K, V> {
             byte[] timestampKey = combine(newKey, "_#TS#".getBytes());
 
             // AbstractExternalCache buildKey method will not convert byte[]
-            CacheGetResult refreshTimeResult = concreteCache.GET(timestampKey);
+            CacheGetResult refreshTimeResult = concreteCache.GET(timestampKey, String.class);
             boolean shouldLoad = false;
             if (refreshTimeResult.isSuccess()) {
                 shouldLoad = currentTime >= Long.parseLong(refreshTimeResult.getValue().toString()) + refreshMillis;
@@ -206,7 +209,7 @@ public class RefreshCache<K, V> extends LoadingCache<K, V> {
             };
 
             // AbstractExternalCache buildKey method will not convert byte[]
-            boolean lockSuccess = concreteCache.tryLockAndRun(lockKey, loadTimeOut, TimeUnit.MILLISECONDS, r);
+            boolean lockSuccess = concreteCache.tryLockAndRun(lockKey, valueType, loadTimeOut, TimeUnit.MILLISECONDS, r);
             if(!lockSuccess && multiLevelCache) {
                 JetCacheExecutor.heavyIOExecutor().schedule(
                         () -> refreshUpperCaches(key), (long)(0.2 * refreshMillis), TimeUnit.MILLISECONDS);
@@ -218,7 +221,7 @@ public class RefreshCache<K, V> extends LoadingCache<K, V> {
             Cache[] caches = targetCache.caches();
             int len = caches.length;
 
-            CacheGetResult cacheGetResult = caches[len - 1].GET(key);
+            CacheGetResult cacheGetResult = caches[len - 1].GET(key, valueType);
             if (!cacheGetResult.isSuccess()) {
                 return;
             }

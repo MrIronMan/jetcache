@@ -6,6 +6,7 @@ package com.alicp.jetcache.anno.method;
 import com.alicp.jetcache.*;
 import com.alicp.jetcache.anno.support.*;
 import com.alicp.jetcache.event.CacheLoadEvent;
+import java.lang.reflect.Type;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -234,7 +235,7 @@ public class CacheHandler implements InvocationHandler {
         }
 
         try {
-            CacheLoader loader = new CacheLoader() {
+            CacheLoader<Object, Object> loader = new CacheLoader<Object, Object>() {
                 @Override
                 public Object load(Object k) throws Throwable {
                     Object result = invokeOrigin(context);
@@ -247,7 +248,7 @@ public class CacheHandler implements InvocationHandler {
                     return !ExpressionUtil.evalPostCondition(context, cic.getCachedAnnoConfig());
                 }
             };
-            Object result = cache.computeIfAbsent(key, loader);
+            Object result = cache.computeIfAbsent(key, context.getResultType(), loader);
 
             return result;
         } catch (CacheInvokeException e) {
@@ -286,8 +287,8 @@ public class CacheHandler implements InvocationHandler {
         }
 
         @Override
-        public void addOrUpdateRefreshTask(K key, CacheLoader<K, V> loader) {
-            super.addOrUpdateRefreshTask(key, loader);
+        public void addOrUpdateRefreshTask(K key, Type valueType, CacheLoader<K, V> loader) {
+            super.addOrUpdateRefreshTask(key, valueType, loader);
         }
     }
 

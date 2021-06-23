@@ -81,7 +81,7 @@ public class CacheHandlerInvalidateTest {
     public void testInvalidate() throws Throwable {
         cache.put("KEY", "V");
         CacheHandler.invoke(cacheInvokeContext);
-        assertNull(cache.get("KEY"));
+        assertNull(cache.get("KEY", String.class));
     }
 
     @Test
@@ -98,8 +98,8 @@ public class CacheHandlerInvalidateTest {
         cache.put("KEY1", "V");
         cache.put("KEY2", "V");
         CacheHandler.invoke(cacheInvokeContext);
-        assertNull(cache.get("KEY1"));
-        assertNull(cache.get("KEY2"));
+        assertNull(cache.get("KEY1", String.class));
+        assertNull(cache.get("KEY2", String.class));
     }
 
     @Test
@@ -107,7 +107,7 @@ public class CacheHandlerInvalidateTest {
         cache.put("KEY", "V");
         invalidateAnnoConfig.setCondition("args[1]==1000");
         CacheHandler.invoke(cacheInvokeContext);
-        assertNull(cache.get("KEY"));
+        assertNull(cache.get("KEY", String.class));
     }
 
     @Test
@@ -115,7 +115,7 @@ public class CacheHandlerInvalidateTest {
         cache.put("KEY", "V");
         invalidateAnnoConfig.setCondition("args[1]!=1000");
         CacheHandler.invoke(cacheInvokeContext);
-        assertNotNull(cache.get("KEY"));
+        assertNotNull(cache.get("KEY", String.class));
     }
 
     @Test
@@ -123,7 +123,7 @@ public class CacheHandlerInvalidateTest {
         cache.put("KEY", "V");
         invalidateAnnoConfig.setCondition("bad condition");
         CacheHandler.invoke(cacheInvokeContext);
-        assertNotNull(cache.get("KEY"));
+        assertNotNull(cache.get("KEY", String.class));
     }
 
     @Test
@@ -131,7 +131,7 @@ public class CacheHandlerInvalidateTest {
         cache.put("KEY", "V");
         invalidateAnnoConfig.setKey("bad key script");
         CacheHandler.invoke(cacheInvokeContext);
-        assertNotNull(cache.get("KEY"));
+        assertNotNull(cache.get("KEY", String.class));
     }
 
 
@@ -157,20 +157,20 @@ public class CacheHandlerInvalidateTest {
             cache.put("K2", "V1");
 
             CacheHandler.invoke(cacheInvokeContext);
-            assertNotNull(cache.get("K1"));
-            assertNotNull(cache.get("K2"));
+            assertNotNull(cache.get("K1", String.class));
+            assertNotNull(cache.get("K2", String.class));
 
             invalidateAnnoConfig.setMulti(true);
 
             cacheInvokeContext.setArgs(new Object[]{null});
             CacheHandler.invoke(cacheInvokeContext);
-            assertNotNull(cache.get("K1"));
-            assertNotNull(cache.get("K2"));
+            assertNotNull(cache.get("K1", String.class));
+            assertNotNull(cache.get("K2", String.class));
 
             cacheInvokeContext.setArgs(new Object[]{new String[]{"K1", "K2"}});
             CacheHandler.invoke(cacheInvokeContext);
-            assertNull(cache.get("K1"));
-            assertNull(cache.get("K2"));
+            assertNull(cache.get("K1", String.class));
+            assertNull(cache.get("K2", String.class));
         }
         {
             cache.put("K1", "V1");
@@ -183,7 +183,7 @@ public class CacheHandlerInvalidateTest {
 
             invalidateAnnoConfig.setMulti(true);
             CacheHandler.invoke(cacheInvokeContext);
-            assertNotNull(cache.get("K1"));
+            assertNotNull(cache.get("K1", String.class));
         }
     }
 }

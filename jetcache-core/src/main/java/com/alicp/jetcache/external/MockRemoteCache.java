@@ -9,6 +9,7 @@ import com.alicp.jetcache.external.AbstractExternalCache;
 import com.alicp.jetcache.external.ExternalCacheConfig;
 
 import java.lang.reflect.Method;
+import java.lang.reflect.Type;
 import java.nio.ByteBuffer;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
@@ -86,9 +87,9 @@ public class MockRemoteCache<K, V> extends AbstractExternalCache<K, V> {
         }
     }
 
-    public CacheValueHolder getHolder(K key) {
+    public CacheValueHolder getHolder(K key, Type valueType) {
         try {
-            CacheGetResult<V> r = GET(key);
+            CacheGetResult<V> r = GET(key, valueType);
             return (CacheValueHolder) getHolder.invoke(r);
         } catch (Exception e) {
             throw new CacheException(e);
@@ -96,8 +97,8 @@ public class MockRemoteCache<K, V> extends AbstractExternalCache<K, V> {
     }
 
     @Override
-    protected CacheGetResult<V> do_GET(K key) {
-        CacheGetResult r = cache.GET(genKey(key));
+    protected CacheGetResult<V> do_GET(K key, Type valueType) {
+        CacheGetResult r = cache.GET(genKey(key), valueType);
         if (r.isSuccess()) {
             r = convertCacheGetResult(r);
         }
@@ -105,7 +106,7 @@ public class MockRemoteCache<K, V> extends AbstractExternalCache<K, V> {
     }
 
     @Override
-    protected MultiGetResult<K, V> do_GET_ALL(Set<? extends K> keys) {
+    protected MultiGetResult<K, V> do_GET_ALL(Set<? extends K> keys, Type valueType) {
         ArrayList<K> keyList = new ArrayList<>(keys.size());
         ArrayList<ByteBuffer> newKeyList = new ArrayList<>(keys.size());
         keys.stream().forEach((k) -> {
@@ -113,7 +114,7 @@ public class MockRemoteCache<K, V> extends AbstractExternalCache<K, V> {
             keyList.add(k);
             newKeyList.add(newKey);
         });
-        MultiGetResult<ByteBuffer, byte[]> result = cache.GET_ALL(new HashSet(newKeyList));
+        MultiGetResult<ByteBuffer, byte[]> result = cache.GET_ALL(new HashSet(newKeyList), valueType);
         Map<ByteBuffer, CacheGetResult<byte[]>> resultMap = result.getValues();
         if (resultMap != null) {
             Map<K, CacheGetResult<V>> returnMap = new HashMap<>();

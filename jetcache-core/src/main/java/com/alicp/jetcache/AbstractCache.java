@@ -3,6 +3,7 @@ package com.alicp.jetcache;
 import com.alicp.jetcache.embedded.AbstractEmbeddedCache;
 import com.alicp.jetcache.event.*;
 import com.alicp.jetcache.external.AbstractExternalCache;
+import java.lang.reflect.Type;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -88,13 +89,13 @@ public abstract class AbstractCache<K, V> implements Cache<K, V> {
     }
 
     @Override
-    public final CacheGetResult<V> GET(K key) {
+    public final CacheGetResult<V> GET(K key, Type valueType) {
         long t = System.currentTimeMillis();
         CacheGetResult<V> result;
         if (key == null) {
             result = new CacheGetResult<V>(CacheResultCode.FAIL, CacheResult.MSG_ILLEGAL_ARGUMENT, null);
         } else {
-            result = do_GET(key);
+            result = do_GET(key, valueType);
         }
         result.future().thenRun(() -> {
             CacheGetEvent event = new CacheGetEvent(this, System.currentTimeMillis() - t, key, result);
@@ -103,16 +104,16 @@ public abstract class AbstractCache<K, V> implements Cache<K, V> {
         return result;
     }
 
-    protected abstract CacheGetResult<V> do_GET(K key);
+    protected abstract CacheGetResult<V> do_GET(K key, Type valueType);
 
     @Override
-    public final MultiGetResult<K, V> GET_ALL(Set<? extends K> keys) {
+    public final MultiGetResult<K, V> GET_ALL(Set<? extends K> keys, Type valueType) {
         long t = System.currentTimeMillis();
         MultiGetResult<K, V> result;
         if (keys == null) {
             result = new MultiGetResult<>(CacheResultCode.FAIL, CacheResult.MSG_ILLEGAL_ARGUMENT, null);
         } else {
-            result = do_GET_ALL(keys);
+            result = do_GET_ALL(keys, valueType);
         }
         result.future().thenRun(() -> {
             CacheGetAllEvent event = new CacheGetAllEvent(this, System.currentTimeMillis() - t, keys, result);
@@ -121,18 +122,18 @@ public abstract class AbstractCache<K, V> implements Cache<K, V> {
         return result;
     }
 
-    protected abstract MultiGetResult<K, V> do_GET_ALL(Set<? extends K> keys);
+    protected abstract MultiGetResult<K, V> do_GET_ALL(Set<? extends K> keys, Type valueType);
 
     @Override
-    public final V computeIfAbsent(K key, Function<K, V> loader, boolean cacheNullWhenLoaderReturnNull) {
-        return computeIfAbsentImpl(key, loader, cacheNullWhenLoaderReturnNull,
+    public final V computeIfAbsent(K key, Type valueType, Function<K, V> loader, boolean cacheNullWhenLoaderReturnNull) {
+        return computeIfAbsentImpl(key, valueType, loader, cacheNullWhenLoaderReturnNull,
                 0, null, this);
     }
 
     @Override
-    public final V computeIfAbsent(K key, Function<K, V> loader, boolean cacheNullWhenLoaderReturnNull,
+    public final V computeIfAbsent(K key, Type valueType, Function<K, V> loader, boolean cacheNullWhenLoaderReturnNull,
                                    long expireAfterWrite, TimeUnit timeUnit) {
-        return computeIfAbsentImpl(key, loader, cacheNullWhenLoaderReturnNull,
+        return computeIfAbsentImpl(key, valueType, loader, cacheNullWhenLoaderReturnNull,
                 expireAfterWrite, timeUnit, this);
     }
 
@@ -146,17 +147,17 @@ public abstract class AbstractCache<K, V> implements Cache<K, V> {
         return true;
     }
 
-    static <K, V> V computeIfAbsentImpl(K key, Function<K, V> loader, boolean cacheNullWhenLoaderReturnNull,
+    static <K, V> V computeIfAbsentImpl(K key, Type valueType, Function<K, V> loader, boolean cacheNullWhenLoaderReturnNull,
                                                long expireAfterWrite, TimeUnit timeUnit, Cache<K, V> cache) {
         AbstractCache<K, V> abstractCache = CacheUtil.getAbstractCache(cache);
         CacheLoader<K, V> newLoader = CacheUtil.createProxyLoader(cache, loader, abstractCache::notify);
         CacheGetResult<V> r;
         if (cache instanceof RefreshCache) {
             RefreshCache<K, V> refreshCache = ((RefreshCache<K, V>) cache);
-            r = refreshCache.GET(key);
-            refreshCache.addOrUpdateRefreshTask(key, newLoader);
+            r = refreshCache.GET(key, valueType);
+            refreshCache.addOrUpdateRefreshTask(key, valueType, newLoader);
         } else {
-            r = cache.GET(key);
+            r = cache.GET(key, valueType);
         }
         if (r.isSuccess()) {
             return r.getValue();
@@ -173,7 +174,7 @@ public abstract class AbstractCache<K, V> implements Cache<K, V> {
 
             V loadedValue;
             if (cache.config().isCachePenetrationProtect()) {
-                loadedValue = synchronizedLoad(cache.config(), abstractCache, key, newLoader, cacheUpdater);
+                loadedValue = synchronizedLoad(cache.config(), abstractCache, key, valueType, newLoader, cacheUpdater);
             } else {
                 loadedValue = newLoader.apply(key);
                 cacheUpdater.accept(loadedValue);
@@ -184,7 +185,7 @@ public abstract class AbstractCache<K, V> implements Cache<K, V> {
     }
 
     static <K, V> V synchronizedLoad(CacheConfig config, AbstractCache<K,V> abstractCache,
-                                     K key, Function<K, V> newLoader, Consumer<V> cacheUpdater) {
+                                     K key, Type valueType, Function<K, V> newLoader, Consumer<V> cacheUpdater) {
         ConcurrentHashMap<Object, LoaderLock> loaderMap = abstractCache.initOrGetLoaderMap();
         Object lockKey = buildLoaderLockKey(abstractCache, key);
         while (true) {

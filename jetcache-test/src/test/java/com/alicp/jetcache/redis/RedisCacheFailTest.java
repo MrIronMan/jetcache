@@ -40,7 +40,7 @@ public class RedisCacheFailTest {
     @Test
     public void test_GET() {
         when(jedis.get((byte[]) any())).thenThrow(new JedisConnectionException("err"));
-        CacheGetResult cr = cache.GET("K");
+        CacheGetResult cr = cache.GET("K", String.class);
         assertEquals(CacheResultCode.FAIL, cr.getResultCode());
         assertNull(cr.getValue());
     }
@@ -50,7 +50,7 @@ public class RedisCacheFailTest {
         when(jedis.mget((byte[][]) any())).thenThrow(new JedisDataException("err"));
         HashSet s = new HashSet();
         s.add("K");
-        MultiGetResult cr = cache.GET_ALL(s);
+        MultiGetResult cr = cache.GET_ALL(s, String.class);
         assertEquals(CacheResultCode.FAIL, cr.getResultCode());
         assertNull(cr.getValues());
     }

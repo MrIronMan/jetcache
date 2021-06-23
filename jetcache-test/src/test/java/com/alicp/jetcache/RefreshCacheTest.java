@@ -52,9 +52,9 @@ public class RefreshCacheTest extends AbstractCacheTest {
             throw new SQLException();
         });
         cache.config().setRefreshPolicy(RefreshPolicy.newPolicy(50, TimeUnit.MILLISECONDS));
-        Assert.assertEquals("V1", cache.get("K1"));
+        Assert.assertEquals("V1", cache.get("K1", String.class));
         Thread.sleep(75);
-        Assert.assertEquals("V1", cache.get("K1"));
+        Assert.assertEquals("V1", cache.get("K1", String.class));
         ((RefreshCache<Object, Object>)cache).stopRefresh();
     }
 
@@ -71,20 +71,20 @@ public class RefreshCacheTest extends AbstractCacheTest {
         Function loader = k-> value.incrementAndGet();
         long t = cache.config().getRefreshPolicy().getRefreshMillis();
 
-        Object v = cache.computeIfAbsent("k1", loader);
-        Assert.assertEquals(v, cache.get("k1"));
+        Object v = cache.computeIfAbsent("k1", AtomicLong.class, loader);
+        Assert.assertEquals(v, cache.get("k1", AtomicLong.class));
         Thread.sleep((long) (t * 1.5));
-        Assert.assertNotEquals(v, cache.get("k1"));
+        Assert.assertNotEquals(v, cache.get("k1", AtomicLong.class));
 
-        v = cache.computeIfAbsent("k2", loader, false);
-        Assert.assertEquals(v, cache.get("k2"));
+        v = cache.computeIfAbsent("k2", AtomicLong.class, loader, false);
+        Assert.assertEquals(v, cache.get("k2", AtomicLong.class));
         Thread.sleep((long) (t * 1.5));
-        Assert.assertNotEquals(v, cache.get("k2"));
+        Assert.assertNotEquals(v, cache.get("k2", AtomicLong.class));
 
-        v = cache.computeIfAbsent("k3", loader, false, 10, TimeUnit.SECONDS);
-        Assert.assertEquals(v, cache.get("k3"));
+        v = cache.computeIfAbsent("k3", AtomicLong.class, loader, false, 10, TimeUnit.SECONDS);
+        Assert.assertEquals(v, cache.get("k3", AtomicLong.class));
         Thread.sleep((long) (t * 1.5));
-        Assert.assertNotEquals(v, cache.get("k3"));
+        Assert.assertNotEquals(v, cache.get("k3", AtomicLong.class));
 
         getRefreshCache(cache).stopRefresh();
         cache.config().setRefreshPolicy(oldPolicy);
@@ -174,9 +174,9 @@ public class RefreshCacheTest extends AbstractCacheTest {
             }
         });
 
-        cache.get("vetoTest");
+        cache.get("vetoTest", String.class);
         Thread.sleep((long) (1.2 * cache.config().getRefreshPolicy().getRefreshMillis()));
-        Assert.assertEquals(CacheResultCode.NOT_EXISTS, cache.GET("vetoTest").getResultCode());
+        Assert.assertEquals(CacheResultCode.NOT_EXISTS, cache.GET("vetoTest", String.class).getResultCode());
 
         cache.config().setLoader(oldLoader);
     }
@@ -186,25 +186,25 @@ public class RefreshCacheTest extends AbstractCacheTest {
         cache.config().getMonitors().add(monitor);
         long refreshMillis = cache.config().getRefreshPolicy().getRefreshMillis();
 
-        Assert.assertEquals("refreshCacheTest1_K1_V0", cache.get("refreshCacheTest1_K1"));
+        Assert.assertEquals("refreshCacheTest1_K1_V0", cache.get("refreshCacheTest1_K1", String.class));
         Assert.assertEquals(1, monitor.getCacheStat().getGetCount());
         Assert.assertEquals(0, monitor.getCacheStat().getGetHitCount());
         Assert.assertEquals(1, monitor.getCacheStat().getGetMissCount());
         Assert.assertEquals(1, monitor.getCacheStat().getLoadCount());
         Assert.assertEquals(1, monitor.getCacheStat().getPutCount());
-        Assert.assertEquals("refreshCacheTest1_K2_V1", cache.get("refreshCacheTest1_K2"));
+        Assert.assertEquals("refreshCacheTest1_K2_V1", cache.get("refreshCacheTest1_K2", String.class));
         Assert.assertEquals(2, monitor.getCacheStat().getGetCount());
         Assert.assertEquals(0, monitor.getCacheStat().getGetHitCount());
         Assert.assertEquals(2, monitor.getCacheStat().getGetMissCount());
         Assert.assertEquals(2, monitor.getCacheStat().getLoadCount());
         Assert.assertEquals(2, monitor.getCacheStat().getPutCount());
-        Assert.assertEquals("refreshCacheTest1_K1_V0", cache.get("refreshCacheTest1_K1"));
+        Assert.assertEquals("refreshCacheTest1_K1_V0", cache.get("refreshCacheTest1_K1", String.class));
         Assert.assertEquals(3, monitor.getCacheStat().getGetCount());
         Assert.assertEquals(1, monitor.getCacheStat().getGetHitCount());
         Assert.assertEquals(2, monitor.getCacheStat().getGetMissCount());
         Assert.assertEquals(2, monitor.getCacheStat().getLoadCount());
         Assert.assertEquals(2, monitor.getCacheStat().getPutCount());
-        Assert.assertEquals("refreshCacheTest1_K2_V1", cache.get("refreshCacheTest1_K2"));
+        Assert.assertEquals("refreshCacheTest1_K2_V1", cache.get("refreshCacheTest1_K2", String.class));
         Assert.assertEquals(4, monitor.getCacheStat().getGetCount());
         Assert.assertEquals(2, monitor.getCacheStat().getGetHitCount());
         Assert.assertEquals(2, monitor.getCacheStat().getGetMissCount());
@@ -217,7 +217,7 @@ public class RefreshCacheTest extends AbstractCacheTest {
         boolean multiLevel = isMultiLevelCache(cache);
 
         Assert.assertEquals(4, monitor.getCacheStat().getLoadCount());
-        Assert.assertNotEquals("refreshCacheTest1_K1_V0", cache.get("refreshCacheTest1_K1"));
+        Assert.assertNotEquals("refreshCacheTest1_K1_V0", cache.get("refreshCacheTest1_K1", String.class));
         if (external && !multiLevel) {
             Assert.assertEquals(5 + 2/*timestamp*/, monitor.getCacheStat().getGetCount());
             Assert.assertEquals(3, monitor.getCacheStat().getGetHitCount());
@@ -231,7 +231,7 @@ public class RefreshCacheTest extends AbstractCacheTest {
             Assert.assertEquals(4, monitor.getCacheStat().getLoadCount());
             Assert.assertEquals(4, monitor.getCacheStat().getPutCount());
         }
-        Assert.assertNotEquals("refreshCacheTest1_K2_V1", cache.get("refreshCacheTest1_K2"));
+        Assert.assertNotEquals("refreshCacheTest1_K2_V1", cache.get("refreshCacheTest1_K2", String.class));
         if (external && !multiLevel) {
             Assert.assertEquals(6 + 2, monitor.getCacheStat().getGetCount());
             Assert.assertEquals(4, monitor.getCacheStat().getGetHitCount());
@@ -258,7 +258,7 @@ public class RefreshCacheTest extends AbstractCacheTest {
         Set s = new HashSet();
         s.add("refreshCacheTest2_K1");
         s.add("refreshCacheTest2_K2");
-        Map values = cache.getAll(s);
+        Map values = cache.getAll(s, String.class);
         long key1StartRefreshTime = System.currentTimeMillis();
 
         Assert.assertEquals(2, monitor.getCacheStat().getGetCount());
@@ -270,7 +270,7 @@ public class RefreshCacheTest extends AbstractCacheTest {
         while (true) {
             long sleepTime = stopRefresh / 5;
             Thread.sleep(sleepTime);
-            cache.get("refreshCacheTest2_K1");
+            cache.get("refreshCacheTest2_K1", String.class);
             long totalSpendTime = System.currentTimeMillis() - key1StartRefreshTime;
             if (totalSpendTime > 1.4 * refreshMillis) {
                 break;
@@ -280,15 +280,15 @@ public class RefreshCacheTest extends AbstractCacheTest {
         cache.config().setLoader(null);//stop refresh
 
         Assert.assertEquals(3, monitor.getCacheStat().getLoadCount());
-        Object newK1Value = cache.get("refreshCacheTest2_K1");
+        Object newK1Value = cache.get("refreshCacheTest2_K1", String.class);
         Assert.assertNotEquals(values.get("refreshCacheTest2_K1"), newK1Value);
         Assert.assertEquals(3, monitor.getCacheStat().getLoadCount());
         // refresh task stopped, but K/V is not expires
-        Assert.assertEquals(values.get("refreshCacheTest2_K2"), cache.get("refreshCacheTest2_K2"));
+        Assert.assertEquals(values.get("refreshCacheTest2_K2"), cache.get("refreshCacheTest2_K2", String.class));
         Assert.assertEquals(3, monitor.getCacheStat().getLoadCount());
 
         Thread.sleep(refreshMillis);
-        Assert.assertEquals(newK1Value, cache.get("refreshCacheTest2_K1"));
+        Assert.assertEquals(newK1Value, cache.get("refreshCacheTest2_K1", String.class));
 
         cache.config().getMonitors().remove(monitor);
     }
@@ -350,9 +350,9 @@ public class RefreshCacheTest extends AbstractCacheTest {
         Sleeper sleeper = new Sleeper(refresh);
 
         //  cache1 starts at 0x, cache2 starts at 0.2x (x = refresh mills)
-        Assert.assertEquals("K1_V0", cache1.get("K1"));
+        Assert.assertEquals("K1_V0", cache1.get("K1", String.class));
         sleeper.sleepTo(0.2);
-        Assert.assertEquals("K1_V0", cache2.get("K1"));
+        Assert.assertEquals("K1_V0", cache2.get("K1", String.class));
 
         //  change blockMills to 0.6x, execution of loader will cause to block 0.6x
         blockMills.set((long) (0.6 * refresh));
@@ -362,34 +362,34 @@ public class RefreshCacheTest extends AbstractCacheTest {
 
         //  now is 1.1x, refresh thread for cache1 is blocked until 1.6x, refresh for cache2 has not been scheduled until 1.2x
         sleeper.sleepTo(1.1);
-        Assert.assertEquals("K1_V0", cache1.get("K1"));
-        Assert.assertEquals("K1_V0", cache2.get("K1"));
-        Assert.assertEquals("0", remote.get("K1"));
+        Assert.assertEquals("K1_V0", cache1.get("K1", String.class));
+        Assert.assertEquals("K1_V0", cache2.get("K1", String.class));
+        Assert.assertEquals("0", remote.get("K1", String.class));
 
         // now is 1.3x, refresh for cache2 starts at 1.5x but failed to get refresh lock, it will refresh from remote on 1.2+0.2=1.4x
         sleeper.sleepTo(1.3);
-        Assert.assertEquals("K1_V0", cache1.get("K1"));
-        Assert.assertEquals("K1_V0", cache2.get("K1"));
-        Assert.assertEquals("0", remote.get("K1"));
+        Assert.assertEquals("K1_V0", cache1.get("K1", String.class));
+        Assert.assertEquals("K1_V0", cache2.get("K1", String.class));
+        Assert.assertEquals("0", remote.get("K1", String.class));
 
         // now is 1.5x
         sleeper.sleepTo(1.5);
-        Assert.assertEquals("K1_V0", cache1.get("K1"));
-        Assert.assertEquals("0", cache2.get("K1"));
-        Assert.assertEquals("0", remote.get("K1"));
+        Assert.assertEquals("K1_V0", cache1.get("K1", String.class));
+        Assert.assertEquals("0", cache2.get("K1", String.class));
+        Assert.assertEquals("0", remote.get("K1", String.class));
 
         // now is 1.8x, refresh for cache1 finished at 1.6x, cache value has been changed by loader, next refresh will start at 2.6x
         sleeper.sleepTo(1.8);
-        Assert.assertEquals("K1_V1", cache1.get("K1"));
-        Assert.assertEquals("0", cache2.get("K1"));
-        Assert.assertEquals("K1_V1", remote.get("K1"));
+        Assert.assertEquals("K1_V1", cache1.get("K1", String.class));
+        Assert.assertEquals("0", cache2.get("K1", String.class));
+        Assert.assertEquals("K1_V1", remote.get("K1", String.class));
 
         //  the second refresh for cache2 start at 2.2x, but the last refresh timestamp set by cache1 is
         //  less than (now - refreshMills), it's no necessary to execute loader 2 times in one refresh interval,
         //  cache2 refresh upper cache value with remote cache value.
         sleeper.sleepTo(2.4);
-        Assert.assertEquals("K1_V1", cache1.get("K1"));
-        Assert.assertEquals("K1_V1", cache2.get("K1"));
-        Assert.assertEquals("K1_V1", remote.get("K1"));
+        Assert.assertEquals("K1_V1", cache1.get("K1", String.class));
+        Assert.assertEquals("K1_V1", cache2.get("K1", String.class));
+        Assert.assertEquals("K1_V1", remote.get("K1", String.class));
     }
 }

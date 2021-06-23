@@ -167,9 +167,9 @@ public class RedisCacheTest extends AbstractExternalCacheTest {
         Assert.assertNotSame(pool1, ((RedisCache) cache).getReadPool());
         Assert.assertNotSame(pool1, ((RedisCache) cache).getReadPool());
         Thread.sleep(15);
-        Assert.assertEquals("V1", cache.get("readFromSlaveTest_K1"));
-        Assert.assertEquals("V1", cache.get("readFromSlaveTest_K1"));
-        Assert.assertEquals("V1", cache.get("readFromSlaveTest_K1"));
-        Assert.assertEquals("V1", cache.get("readFromSlaveTest_K1"));
+        Assert.assertEquals("V1", cache.get("readFromSlaveTest_K1", String.class));
+        Assert.assertEquals("V1", cache.get("readFromSlaveTest_K1", String.class));
+        Assert.assertEquals("V1", cache.get("readFromSlaveTest_K1", String.class));
+        Assert.assertEquals("V1", cache.get("readFromSlaveTest_K1", String.class));
     }
 }

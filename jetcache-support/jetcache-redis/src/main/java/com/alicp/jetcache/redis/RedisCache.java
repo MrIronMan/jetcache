@@ -2,6 +2,7 @@ package com.alicp.jetcache.redis;
 
 import com.alicp.jetcache.*;
 import com.alicp.jetcache.external.AbstractExternalCache;
+import java.lang.reflect.Type;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import redis.clients.jedis.Jedis;
@@ -103,7 +104,7 @@ public class RedisCache<K, V> extends AbstractExternalCache<K, V> {
     }
 
     @Override
-    protected CacheGetResult<V> do_GET(K key) {
+    protected CacheGetResult<V> do_GET(K key, Type valueType) {
         try (Jedis jedis = getReadPool().getResource()) {
             byte[] newKey = buildKey(key);
             byte[] bytes = jedis.get(newKey);
@@ -123,7 +124,7 @@ public class RedisCache<K, V> extends AbstractExternalCache<K, V> {
     }
 
     @Override
-    protected MultiGetResult<K, V> do_GET_ALL(Set<? extends K> keys) {
+    protected MultiGetResult<K, V> do_GET_ALL(Set<? extends K> keys, Type valueType) {
         try (Jedis jedis = getReadPool().getResource()) {
             ArrayList<K> keyList = new ArrayList<K>(keys);
             byte[][] newKeys = keyList.stream().map((k) -> buildKey(k)).toArray(byte[][]::new);

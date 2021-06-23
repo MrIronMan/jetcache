@@ -25,17 +25,17 @@ public abstract class AbstractEmbeddedCacheTest extends AbstractCacheTest {
         Assert.assertEquals(CacheResultCode.SUCCESS, cache.PUT("K1", "V1", 1, TimeUnit.SECONDS).getResultCode());
         Assert.assertEquals(CacheResultCode.SUCCESS, cache.PUT("K2", "V2", 1, TimeUnit.SECONDS).getResultCode());
         Assert.assertEquals(CacheResultCode.SUCCESS, cache.PUT("K3", "V3", 1, TimeUnit.SECONDS).getResultCode());
-        Assert.assertEquals(CacheResultCode.NOT_EXISTS, cache.GET("K1").getResultCode());
-        Assert.assertEquals(CacheResultCode.SUCCESS, cache.GET("K2").getResultCode());
-        Assert.assertEquals(CacheResultCode.SUCCESS, cache.GET("K3").getResultCode());
+        Assert.assertEquals(CacheResultCode.NOT_EXISTS, cache.GET("K1", String.class).getResultCode());
+        Assert.assertEquals(CacheResultCode.SUCCESS, cache.GET("K2", String.class).getResultCode());
+        Assert.assertEquals(CacheResultCode.SUCCESS, cache.GET("K3", String.class).getResultCode());
 
         Assert.assertEquals(CacheResultCode.SUCCESS, cache.PUT("K1", "V1", 1, TimeUnit.SECONDS).getResultCode());
         Assert.assertEquals(CacheResultCode.SUCCESS, cache.PUT("K2", "V2", 1, TimeUnit.SECONDS).getResultCode());
-        Assert.assertEquals(CacheResultCode.SUCCESS, cache.GET("K1").getResultCode());
+        Assert.assertEquals(CacheResultCode.SUCCESS, cache.GET("K1", String.class).getResultCode());
         Assert.assertEquals(CacheResultCode.SUCCESS, cache.PUT("K3", "V3", 1, TimeUnit.SECONDS).getResultCode());
-        Assert.assertEquals(CacheResultCode.SUCCESS, cache.GET("K1").getResultCode());
-        Assert.assertEquals(CacheResultCode.NOT_EXISTS, cache.GET("K2").getResultCode());
-        Assert.assertEquals(CacheResultCode.SUCCESS, cache.GET("K3").getResultCode());
+        Assert.assertEquals(CacheResultCode.SUCCESS, cache.GET("K1", String.class).getResultCode());
+        Assert.assertEquals(CacheResultCode.NOT_EXISTS, cache.GET("K2", String.class).getResultCode());
+        Assert.assertEquals(CacheResultCode.SUCCESS, cache.GET("K3", String.class).getResultCode());
     }
 
     public void test(int expireMillis, boolean testLru) throws Exception {
@@ -94,8 +94,8 @@ public abstract class AbstractEmbeddedCacheTest extends AbstractCacheTest {
             d2.setName("HL");
 
             cache.put(d1, "V1");
-            Assert.assertNull(cache.get(d2));
-            Assert.assertNull(cache.get(d3));
+            Assert.assertNull(cache.get(d2, String.class));
+            Assert.assertNull(cache.get(d3, String.class));
         }
 
         {
@@ -109,8 +109,8 @@ public abstract class AbstractEmbeddedCacheTest extends AbstractCacheTest {
             d2.setName("HL2");
 
             cache.put(d1, "V2");
-            Assert.assertEquals("V2", cache.get(d2));
-            Assert.assertNull(cache.get(d3));
+            Assert.assertEquals("V2", cache.get(d2, String.class));
+            Assert.assertNull(cache.get(d3, String.class));
         }
     }
 

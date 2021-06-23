@@ -75,7 +75,7 @@ public class CacheHandlerUpdateTest {
     public void testUpdate() throws Throwable {
         cache.put("K1", "V");
         CacheHandler.invoke(cacheInvokeContext);
-        assertEquals(1000, cache.get("K1"));
+        assertEquals(1000, cache.get("K1", String.class));
     }
 
 
@@ -84,7 +84,7 @@ public class CacheHandlerUpdateTest {
         cache.put("K1", "V");
         updateAnnoConfig.setCondition("args[1]==1000");
         CacheHandler.invoke(cacheInvokeContext);
-        assertEquals(1000, cache.get("K1"));
+        assertEquals(1000, cache.get("K1", String.class));
     }
 
     @Test
@@ -92,7 +92,7 @@ public class CacheHandlerUpdateTest {
         cache.put("K1", "V");
         updateAnnoConfig.setCondition("args[1]!=1000");
         CacheHandler.invoke(cacheInvokeContext);
-        assertEquals("V", cache.get("K1"));
+        assertEquals("V", cache.get("K1", String.class));
 
     }
 
@@ -101,7 +101,7 @@ public class CacheHandlerUpdateTest {
         cache.put("K1", "V");
         updateAnnoConfig.setCondition("bad condition");
         CacheHandler.invoke(cacheInvokeContext);
-        assertEquals("V", cache.get("K1"));
+        assertEquals("V", cache.get("K1", String.class));
     }
 
     @Test
@@ -109,7 +109,7 @@ public class CacheHandlerUpdateTest {
         cache.put("K1", "V");
         updateAnnoConfig.setKey("bad key script");
         CacheHandler.invoke(cacheInvokeContext);
-        assertEquals("V", cache.get("K1"));
+        assertEquals("V", cache.get("K1", String.class));
     }
 
     @Test
@@ -117,7 +117,7 @@ public class CacheHandlerUpdateTest {
         cache.put("K1", "V");
         updateAnnoConfig.setValue("bad value script");
         CacheHandler.invoke(cacheInvokeContext);
-        assertEquals("V", cache.get("K1"));
+        assertEquals("V", cache.get("K1", String.class));
     }
 
     static class TestMulti {
@@ -145,25 +145,25 @@ public class CacheHandlerUpdateTest {
             cache.put("K1", 1);
             cache.put("K2", 2);
             CacheHandler.invoke(cacheInvokeContext);
-            assertEquals(1, cache.get("K1"));
-            assertEquals(2, cache.get("K2"));
+            assertEquals(1, cache.get("K1", Integer.class));
+            assertEquals(2, cache.get("K2", Integer.class));
 
             updateAnnoConfig.setMulti(true);
 
             cacheInvokeContext.setArgs(new Object[]{null, new int[]{10, 20}});
             CacheHandler.invoke(cacheInvokeContext);
-            assertEquals(1, cache.get("K1"));
-            assertEquals(2, cache.get("K2"));
+            assertEquals(1, cache.get("K1", Integer.class));
+            assertEquals(2, cache.get("K2", Integer.class));
 
             cacheInvokeContext.setArgs(new Object[]{new String[]{"K1", "K2"}, null});
             CacheHandler.invoke(cacheInvokeContext);
-            assertEquals(1, cache.get("K1"));
-            assertEquals(2, cache.get("K2"));
+            assertEquals(1, cache.get("K1", Integer.class));
+            assertEquals(2, cache.get("K2", Integer.class));
 
             cacheInvokeContext.setArgs(new Object[]{new String[]{"K1", "K2"}, new int[]{10, 20}});
             CacheHandler.invoke(cacheInvokeContext);
-            assertEquals(10, cache.get("K1"));
-            assertEquals(20, cache.get("K2"));
+            assertEquals(10, cache.get("K1", Integer.class));
+            assertEquals(20, cache.get("K2", Integer.class));
         }
         {
             Method method = TestMulti.class.getMethod("update", String.class, int[].class);
@@ -178,8 +178,8 @@ public class CacheHandlerUpdateTest {
             cache.put("K2", 2);
             updateAnnoConfig.setMulti(true);
             CacheHandler.invoke(cacheInvokeContext);
-            assertEquals(1, cache.get("K1"));
-            assertEquals(2, cache.get("K2"));
+            assertEquals(1, cache.get("K1", Integer.class));
+            assertEquals(2, cache.get("K2", Integer.class));
         }
         {
             Method method = TestMulti.class.getMethod("update", String[].class, int.class);
@@ -194,8 +194,8 @@ public class CacheHandlerUpdateTest {
             cache.put("K2", 2);
             updateAnnoConfig.setMulti(true);
             CacheHandler.invoke(cacheInvokeContext);
-            assertEquals(1, cache.get("K1"));
-            assertEquals(2, cache.get("K2"));
+            assertEquals(1, cache.get("K1", Integer.class));
+            assertEquals(2, cache.get("K2", Integer.class));
         }
     }
 }

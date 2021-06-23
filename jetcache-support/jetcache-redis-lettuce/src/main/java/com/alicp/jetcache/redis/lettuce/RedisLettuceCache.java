@@ -14,6 +14,7 @@ import io.lettuce.core.cluster.api.async.RedisClusterAsyncCommands;
 import io.lettuce.core.cluster.api.reactive.RedisClusterReactiveCommands;
 import io.lettuce.core.cluster.api.sync.RedisClusterCommands;
 
+import java.lang.reflect.Type;
 import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
@@ -146,7 +147,7 @@ public class RedisLettuceCache<K, V> extends AbstractExternalCache<K, V> {
     }
 
     @Override
-    protected CacheGetResult<V> do_GET(K key) {
+    protected CacheGetResult<V> do_GET(K key, Type valueType) {
         try {
             byte[] newKey = buildKey(key);
             RedisFuture<byte[]> future = stringAsyncCommands.get(newKey);
@@ -176,7 +177,7 @@ public class RedisLettuceCache<K, V> extends AbstractExternalCache<K, V> {
     }
 
     @Override
-    protected MultiGetResult<K, V> do_GET_ALL(Set<? extends K> keys) {
+    protected MultiGetResult<K, V> do_GET_ALL(Set<? extends K> keys, Type valueType) {
         try {
             ArrayList<K> keyList = new ArrayList<K>(keys);
             byte[][] newKeys = keyList.stream().map((k) -> buildKey(k)).toArray(byte[][]::new);

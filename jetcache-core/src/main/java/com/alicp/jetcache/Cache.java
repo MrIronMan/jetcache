@@ -1,5 +1,6 @@
 package com.alicp.jetcache;
 
+import java.lang.reflect.Type;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,10 +35,10 @@ public interface Cache<K, V> extends Closeable {
      * </ul>
      * @throws CacheInvokeException only if loader throws an exception
      * @see CacheLoader
-     * @see #GET(Object)
+     * @see #GET(Object, Type)
      */
-    default V get(K key) throws CacheInvokeException {
-        CacheGetResult<V> result = GET(key);
+    default V get(K key, Type valueType) throws CacheInvokeException {
+        CacheGetResult<V> result = GET(key, valueType);
         if (result.isSuccess()) {
             return result.getValue();
         } else {
@@ -55,10 +56,10 @@ public interface Cache<K, V> extends Closeable {
      * @return A map of entries that were found for the given keys. Keys not found in the cache are not in the returned map.
      * @throws CacheInvokeException only if loader throws an exception
      * @see CacheLoader
-     * @see #GET_ALL(Set)
+     * @see #GET_ALL(Set, Type)
      */
-    default Map<K, V> getAll(Set<? extends K> keys) throws CacheInvokeException {
-        MultiGetResult<K, V> cacheGetResults = GET_ALL(keys);
+    default Map<K, V> getAll(Set<? extends K> keys, Type valueType) throws CacheInvokeException {
+        MultiGetResult<K, V> cacheGetResults = GET_ALL(keys, valueType);
         return cacheGetResults.unwrapValues();
     }
 
@@ -170,10 +171,10 @@ public interface Cache<K, V> extends Closeable {
      * @return an AutoReleaseLock(implements java.lang.AutoCloseable) instance if success.
      *         or null if the attempt fails, which indicates there is an another thread/process/server has the lock,
      *         or error occurs during cache access.
-     * @see #tryLockAndRun(Object, long, TimeUnit, Runnable)
+     * @see #tryLockAndRun(Object, Type, long, TimeUnit, Runnable)
      */
     @SuppressWarnings("unchecked")
-    default AutoReleaseLock tryLock(K key, long expire, TimeUnit timeUnit) {
+    default AutoReleaseLock tryLock(K key, Type valueType, long expire, TimeUnit timeUnit) {
         if (key == null) {
             return null;
         }
@@ -223,7 +224,7 @@ public interface Cache<K, V> extends Closeable {
                         config.getTryLockInquiryCount(), key, lockResult.getMessage());
                 int inquiryCount = 0;
                 while (inquiryCount++ < config.getTryLockInquiryCount()) {
-                    CacheGetResult inquiryResult = cache.GET(key);
+                    CacheGetResult inquiryResult = cache.GET(key, valueType);
                     if (inquiryResult.isSuccess()) {
                         if (uuid.equals(inquiryResult.getValue())) {
                             logger.debug("[tryLock] [{} of {}] [{}] successfully get a lock after inquiry. Key={}",
@@ -267,8 +268,8 @@ public interface Cache<K, V> extends Closeable {
      * @param action the action need to execute
      * @return true if successfully get the lock and the action is executed
      */
-    default boolean tryLockAndRun(K key, long expire, TimeUnit timeUnit, Runnable action){
-        try (AutoReleaseLock lock = tryLock(key, expire, timeUnit)) {
+    default boolean tryLockAndRun(K key, Type valueType, long expire, TimeUnit timeUnit, Runnable action){
+        try (AutoReleaseLock lock = tryLock(key, valueType, expire, timeUnit)) {
             if (lock != null) {
                 action.run();
                 return true;
@@ -287,7 +288,7 @@ public interface Cache<K, V> extends Closeable {
      * @param key the key
      * @return the result
      */
-    CacheGetResult<V> GET(K key);
+    CacheGetResult<V> GET(K key, Type valueType);
 
     /**
      * Gets a collection of entries from the Cache.
@@ -298,18 +299,19 @@ public interface Cache<K, V> extends Closeable {
      * @param keys the key collection
      * @return the result
      */
-    MultiGetResult<K, V> GET_ALL(Set<? extends K> keys);
+    MultiGetResult<K, V> GET_ALL(Set<? extends K> keys, Type valueType);
 
     /**
      * If there is a value associated with the key, return the value;
      * otherwise use the loader load the value and return, and then update the cache.
      * @param key the key
+     * @param valueType  value type
      * @param loader the value loader
      * @return the value
      * @see CacheConfig#isCacheNullValue()
      */
-    default V computeIfAbsent(K key, Function<K, V> loader) {
-        return computeIfAbsent(key, loader, config().isCacheNullValue());
+    default V computeIfAbsent(K key, Type valueType, Function<K, V> loader) {
+        return computeIfAbsent(key, valueType, loader, config().isCacheNullValue());
     }
 
     /**
@@ -320,7 +322,7 @@ public interface Cache<K, V> extends Closeable {
      * @param cacheNullWhenLoaderReturnNull true if null value returned by loader should put into cache use the key
      * @return the value
      */
-    V computeIfAbsent(K key, Function<K, V> loader, boolean cacheNullWhenLoaderReturnNull);
+    V computeIfAbsent(K key, Type valueType, Function<K, V> loader, boolean cacheNullWhenLoaderReturnNull);
 
     /**
      * If there is a value associated with the key, return the value;
@@ -332,7 +334,7 @@ public interface Cache<K, V> extends Closeable {
      * @param timeUnit the time unit of expireAfterWrite
      * @return the value
      */
-    V computeIfAbsent(K key, Function<K, V> loader, boolean cacheNullWhenLoaderReturnNull, long expireAfterWrite, TimeUnit timeUnit);
+    V computeIfAbsent(K key, Type valueType, Function<K, V> loader, boolean cacheNullWhenLoaderReturnNull, long expireAfterWrite, TimeUnit timeUnit);
 
     /**
      * Associates the specified value with the specified key in the cache.

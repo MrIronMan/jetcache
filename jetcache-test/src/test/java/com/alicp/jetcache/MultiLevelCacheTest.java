@@ -146,7 +146,7 @@ public class MultiLevelCacheTest extends AbstractCacheTest {
         cache.put("KK1", "V1");
         Thread.sleep(15);
         l1Cache.remove("KK1");
-        Assert.assertEquals("V1", cache.get("KK1"));
+        Assert.assertEquals("V1", cache.get("KK1", String.class));
 
         AbstractCache c1 = getConcreteCache(l1Cache);
         AbstractCache c2 = getConcreteCache(l2Cache);
@@ -155,7 +155,7 @@ public class MultiLevelCacheTest extends AbstractCacheTest {
                 ((com.github.benmanes.caffeine.cache.Cache) c1.unwrap(com.github.benmanes.caffeine.cache.Cache.class))
                         .getIfPresent("KK1");
         CacheValueHolder<Object> h2 = (CacheValueHolder<Object>)
-                ((MockRemoteCache)c2).getHolder("KK1");
+                ((MockRemoteCache)c2).getHolder("KK1", String.class);
 
         long x = h1.getExpireTime() - h2.getExpireTime();
         if (Math.abs(x) > 10) {
@@ -174,11 +174,11 @@ public class MultiLevelCacheTest extends AbstractCacheTest {
 
         cache.put("useSubExpire_key", "V1");
         Thread.sleep(16);
-        Assert.assertNull(l1Cache.get("useSubExpire_key"));
-        Assert.assertEquals("V1", cache.get("useSubExpire_key"));
-        Assert.assertNotNull(l1Cache.get("useSubExpire_key"));
+        Assert.assertNull(l1Cache.get("useSubExpire_key", String.class));
+        Assert.assertEquals("V1", cache.get("useSubExpire_key", String.class));
+        Assert.assertNotNull(l1Cache.get("useSubExpire_key", String.class));
         Thread.sleep(16);
-        Assert.assertNull(l1Cache.get("useSubExpire_key"));
+        Assert.assertNull(l1Cache.get("useSubExpire_key", String.class));
         cache.remove("useSubExpire_key");
 
         Set s = new HashSet();
@@ -187,11 +187,11 @@ public class MultiLevelCacheTest extends AbstractCacheTest {
         m.put("useSubExpire_key", "V2");
         cache.putAll(m);
         Thread.sleep(16);
-        Assert.assertNull(l1Cache.get("useSubExpire_key"));
-        Assert.assertEquals("V2", cache.getAll(s).get("useSubExpire_key"));
-        Assert.assertNotNull(l1Cache.get("useSubExpire_key"));
+        Assert.assertNull(l1Cache.get("useSubExpire_key", String.class));
+        Assert.assertEquals("V2", cache.getAll(s, String.class).get("useSubExpire_key"));
+        Assert.assertNotNull(l1Cache.get("useSubExpire_key", String.class));
         Thread.sleep(16);
-        Assert.assertNull(l1Cache.get("useSubExpire_key"));
+        Assert.assertNull(l1Cache.get("useSubExpire_key", String.class));
         cache.remove("useSubExpire_key");
 
         ((MultiLevelCacheConfig<Object, Object>)cache.config()).setUseExpireOfSubCache(false);

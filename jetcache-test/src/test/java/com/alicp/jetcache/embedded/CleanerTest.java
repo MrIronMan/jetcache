@@ -24,11 +24,11 @@ public class CleanerTest {
         c1.put("K1", "V1", 1, TimeUnit.MILLISECONDS);
         c2.put("K1", "V1", 1, TimeUnit.MILLISECONDS);
         Thread.sleep(1);
-        Assert.assertEquals(CacheResultCode.EXPIRED, c1.GET("K1").getResultCode());
-        Assert.assertEquals(CacheResultCode.EXPIRED, c1.GET("K1").getResultCode());
+        Assert.assertEquals(CacheResultCode.EXPIRED, c1.GET("K1", String.class).getResultCode());
+        Assert.assertEquals(CacheResultCode.EXPIRED, c1.GET("K1", String.class).getResultCode());
         Cleaner.run();
-        Assert.assertEquals(CacheResultCode.NOT_EXISTS, c1.GET("K1").getResultCode());
-        Assert.assertEquals(CacheResultCode.NOT_EXISTS, c1.GET("K1").getResultCode());
+        Assert.assertEquals(CacheResultCode.NOT_EXISTS, c1.GET("K1", String.class).getResultCode());
+        Assert.assertEquals(CacheResultCode.NOT_EXISTS, c1.GET("K1", String.class).getResultCode());
 
         Assert.assertEquals(2, Cleaner.linkedHashMapCaches.size());
         c1 = null;
