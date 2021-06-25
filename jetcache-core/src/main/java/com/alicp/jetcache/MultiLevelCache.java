@@ -253,4 +253,19 @@ public class MultiLevelCache<K, V> extends AbstractCache<K, V> {
             c.close();
         }
     }
+
+    @Override
+    public CacheResult tryAutoDelayExpire(K key, long expireAfterWrite, TimeUnit timeUnit) {
+        CompletableFuture<ResultData> future = CompletableFuture.completedFuture(null);
+        for (Cache cache : caches) {
+            CacheResult r;
+            if (timeUnit == null) {
+                r = cache.tryAutoDelayExpire(key, expireAfterWrite, TimeUnit.MILLISECONDS);
+            } else {
+                r = cache.tryAutoDelayExpire(key, config().getExpireAfterWriteInMillis(), timeUnit);
+            }
+            future = combine(future, r);
+        }
+        return new CacheResult(future);
+    }
 }

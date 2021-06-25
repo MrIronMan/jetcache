@@ -2,7 +2,6 @@ package com.alicp.jetcache.redis.redisson;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
-import com.alibaba.fastjson.serializer.SerializerFeature;
 import com.alicp.jetcache.CacheConfig;
 import com.alicp.jetcache.CacheConfigException;
 import com.alicp.jetcache.CacheGetResult;
@@ -80,7 +79,7 @@ public class RedissonCache<K, V> extends AbstractExternalCache<K, V> {
     }
 
     protected String buildStrKey(K key) {
-        return config.getKeyPrefix() + key.toString();
+        return config.getKeyPrefix() + ":" + key.toString();
     }
 
     @Override
@@ -93,8 +92,9 @@ public class RedissonCache<K, V> extends AbstractExternalCache<K, V> {
 //            }
             CacheValueHolder cacheValueHolder = new CacheValueHolder();
             cacheValueHolder.setValue(decode(rb.get(), valueType));
-            cacheValueHolder.setAccessTime(123);
-            cacheValueHolder.setExpireTime(123);
+            long timeMillis = System.currentTimeMillis();
+            cacheValueHolder.setAccessTime(timeMillis);
+            cacheValueHolder.setExpireTime(timeMillis + config().getExpireAfterWriteInMillis());
             return new CacheGetResult(CacheResultCode.SUCCESS, null, cacheValueHolder);
         } else {
             return CacheGetResult.NOT_EXISTS_WITHOUT_MSG;
@@ -109,8 +109,9 @@ public class RedissonCache<K, V> extends AbstractExternalCache<K, V> {
             if (rb.get() != null) {
                 CacheValueHolder cacheValueHolder = new CacheValueHolder();
                 cacheValueHolder.setValue(decode(rb.get(), valueType));
-                cacheValueHolder.setAccessTime(123);
-                cacheValueHolder.setExpireTime(123);
+                long timeMillis = System.currentTimeMillis();
+                cacheValueHolder.setAccessTime(timeMillis);
+                cacheValueHolder.setExpireTime(timeMillis + config().getExpireAfterWriteInMillis());
                 CacheGetResult<V> r = new CacheGetResult<V>(CacheResultCode.SUCCESS, null, cacheValueHolder);
                 resultMap.put(key, r);
             } else {
@@ -184,5 +185,12 @@ public class RedissonCache<K, V> extends AbstractExternalCache<K, V> {
             return false;
         }
         return true;
+    }
+
+    @Override
+    public CacheResult tryAutoDelayExpire(K key, long expireAfterWrite, TimeUnit timeUnit) {
+        RBucket<String> rb = redissonClient.getBucket(buildStrKey(key));
+        rb.expire(timeUnit.toMillis(expireAfterWrite), timeUnit);
+        return CacheResult.SUCCESS_WITHOUT_MSG;
     }
 }

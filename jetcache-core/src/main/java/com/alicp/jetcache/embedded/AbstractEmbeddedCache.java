@@ -138,4 +138,15 @@ public abstract class AbstractEmbeddedCache<K, V> extends AbstractCache<K, V> {
             return CacheResult.EXISTS_WITHOUT_MSG;
         }
     }
+
+    @Override
+    public CacheResult tryAutoDelayExpire(K key, long expireAfterWrite, TimeUnit timeUnit) {
+        Object newKey = buildKey(key);
+        CacheValueHolder<V> holder = (CacheValueHolder<V>) innerMap.getValue(newKey);
+        if (holder == null) {
+            return CacheResult.SUCCESS_WITHOUT_MSG;
+        }
+        holder.setExpireTime(timeUnit.toMillis(expireAfterWrite) + System.currentTimeMillis());
+        return CacheResult.SUCCESS_WITHOUT_MSG;
+    }
 }

@@ -459,4 +459,19 @@ public interface Cache<K, V> extends Closeable {
      */
     CacheResult PUT_IF_ABSENT(K key, V value, long expireAfterWrite, TimeUnit timeUnit);
 
+    //--------------------------Custom API---------------------------------------------
+
+    /**
+     * If the specified key is already associated with a value, try to delay expire time.
+     * In order to improve performance, This operation will run with async thread.
+     *
+     * @param key key with which the specified value is to be associated
+     * @param expireAfterWrite the TTL(time to live) of the KV association
+     * @param timeUnit the time unit of expireAfterWrite
+     * @return the result
+     */
+    default CacheResult tryAutoDelayExpire(K key, long expireAfterWrite, TimeUnit timeUnit) {
+        return new CacheResult(CacheResultCode.FAIL, "You must implement this method before use it :(");
+    }
+
 }

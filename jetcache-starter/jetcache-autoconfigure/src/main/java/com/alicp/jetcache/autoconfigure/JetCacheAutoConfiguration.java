@@ -17,7 +17,7 @@ import org.springframework.context.annotation.Import;
 @Configuration
 @ConditionalOnClass(GlobalCacheConfig.class)
 @ConditionalOnMissingBean(GlobalCacheConfig.class)
-@EnableConfigurationProperties(JetCacheProperties.class)
+@EnableConfigurationProperties({JetCacheProperties.class})
 @Import({RedisAutoConfiguration.class,
         CaffeineAutoConfiguration.class,
         MockRemoteCacheAutoConfiguration.class,

@@ -1,12 +1,17 @@
 package com.alicp.jetcache;
 
 import com.alicp.jetcache.embedded.AbstractEmbeddedCache;
-import com.alicp.jetcache.event.*;
+import com.alicp.jetcache.event.CacheEvent;
+import com.alicp.jetcache.event.CacheGetAllEvent;
+import com.alicp.jetcache.event.CacheGetEvent;
+import com.alicp.jetcache.event.CachePutAllEvent;
+import com.alicp.jetcache.event.CachePutEvent;
+import com.alicp.jetcache.event.CacheRemoveAllEvent;
+import com.alicp.jetcache.event.CacheRemoveEvent;
 import com.alicp.jetcache.external.AbstractExternalCache;
+import com.alicp.jetcache.support.JetCacheExecutor;
+import com.alicp.jetcache.support.config.OnlineConfigProperties;
 import java.lang.reflect.Type;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.nio.ByteBuffer;
 import java.time.Duration;
 import java.util.List;
@@ -17,6 +22,8 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Created on 2016/10/7.
@@ -43,14 +50,14 @@ public abstract class AbstractCache<K, V> implements Cache<K, V> {
     protected void logError(String oper, Object key, Throwable e) {
         StringBuilder sb = new StringBuilder(64);
         sb.append("jetcache(")
-                .append(this.getClass().getSimpleName()).append(") ")
-                .append(oper)
-                .append(" error.");
+            .append(this.getClass().getSimpleName()).append(") ")
+            .append(oper)
+            .append(" error.");
         if (!(key instanceof byte[])) {
             try {
                 sb.append(" key=[")
-                        .append(config().getKeyConvertor().apply((K) key))
-                        .append(']');
+                    .append(config().getKeyConvertor().apply((K) key))
+                    .append(']');
             } catch (Exception ex) {
                 // ignore
             }
@@ -125,19 +132,21 @@ public abstract class AbstractCache<K, V> implements Cache<K, V> {
     protected abstract MultiGetResult<K, V> do_GET_ALL(Set<? extends K> keys, Type valueType);
 
     @Override
-    public final V computeIfAbsent(K key, Type valueType, Function<K, V> loader, boolean cacheNullWhenLoaderReturnNull) {
+    public final V computeIfAbsent(K key, Type valueType, Function<K, V> loader,
+        boolean cacheNullWhenLoaderReturnNull) {
         return computeIfAbsentImpl(key, valueType, loader, cacheNullWhenLoaderReturnNull,
-                0, null, this);
+            0, null, this);
     }
 
     @Override
     public final V computeIfAbsent(K key, Type valueType, Function<K, V> loader, boolean cacheNullWhenLoaderReturnNull,
-                                   long expireAfterWrite, TimeUnit timeUnit) {
+        long expireAfterWrite, TimeUnit timeUnit) {
         return computeIfAbsentImpl(key, valueType, loader, cacheNullWhenLoaderReturnNull,
-                expireAfterWrite, timeUnit, this);
+            expireAfterWrite, timeUnit, this);
     }
 
-    private static <K, V> boolean needUpdate(V loadedValue, boolean cacheNullWhenLoaderReturnNull, Function<K, V> loader) {
+    private static <K, V> boolean needUpdate(V loadedValue, boolean cacheNullWhenLoaderReturnNull,
+        Function<K, V> loader) {
         if (loadedValue == null && !cacheNullWhenLoaderReturnNull) {
             return false;
         }
@@ -147,8 +156,28 @@ public abstract class AbstractCache<K, V> implements Cache<K, V> {
         return true;
     }
 
-    static <K, V> V computeIfAbsentImpl(K key, Type valueType, Function<K, V> loader, boolean cacheNullWhenLoaderReturnNull,
-                                               long expireAfterWrite, TimeUnit timeUnit, Cache<K, V> cache) {
+    private static <K, V> void delayExpire(K key, long expireAfterWrite, TimeUnit timeUnit, Cache<K, V> cache) {
+        Boolean autoDelayExpire = OnlineConfigProperties.getInstance().getAutoDelayExpire();
+        if (autoDelayExpire == null || !autoDelayExpire) {
+            return;
+        }
+
+        logger.info("execute delay expire ······");
+
+        if (timeUnit != null) {
+            cache.tryAutoDelayExpire(key, expireAfterWrite, timeUnit);
+        } else {
+            cache.tryAutoDelayExpire(key, cache.config().getExpireAfterWriteInMillis(), TimeUnit.MILLISECONDS);
+        }
+        // FIXME: 2021/6/25 需要进行异步处理
+//        Runnable runnable = () -> {
+//        };
+//        JetCacheExecutor.heavyIOExecutor().execute(runnable);
+    }
+
+    static <K, V> V computeIfAbsentImpl(K key, Type valueType, Function<K, V> loader,
+        boolean cacheNullWhenLoaderReturnNull,
+        long expireAfterWrite, TimeUnit timeUnit, Cache<K, V> cache) {
         AbstractCache<K, V> abstractCache = CacheUtil.getAbstractCache(cache);
         CacheLoader<K, V> newLoader = CacheUtil.createProxyLoader(cache, loader, abstractCache::notify);
         CacheGetResult<V> r;
@@ -160,10 +189,13 @@ public abstract class AbstractCache<K, V> implements Cache<K, V> {
             r = cache.GET(key, valueType);
         }
         if (r.isSuccess()) {
+
+            delayExpire(key, expireAfterWrite, timeUnit, abstractCache);
+
             return r.getValue();
         } else {
             Consumer<V> cacheUpdater = (loadedValue) -> {
-                if(needUpdate(loadedValue, cacheNullWhenLoaderReturnNull, newLoader)) {
+                if (needUpdate(loadedValue, cacheNullWhenLoaderReturnNull, newLoader)) {
                     if (timeUnit != null) {
                         cache.PUT(key, loadedValue, expireAfterWrite, timeUnit).waitForResult();
                     } else {
@@ -184,8 +216,8 @@ public abstract class AbstractCache<K, V> implements Cache<K, V> {
         }
     }
 
-    static <K, V> V synchronizedLoad(CacheConfig config, AbstractCache<K,V> abstractCache,
-                                     K key, Type valueType, Function<K, V> newLoader, Consumer<V> cacheUpdater) {
+    static <K, V> V synchronizedLoad(CacheConfig config, AbstractCache<K, V> abstractCache,
+        K key, Type valueType, Function<K, V> newLoader, Consumer<V> cacheUpdater) {
         ConcurrentHashMap<Object, LoaderLock> loaderMap = abstractCache.initOrGetLoaderMap();
         Object lockKey = buildLoaderLockKey(abstractCache, key);
         while (true) {
@@ -217,7 +249,7 @@ public abstract class AbstractCache<K, V> implements Cache<K, V> {
                         ll.signal.await();
                     } else {
                         boolean ok = ll.signal.await(timeout.toMillis(), TimeUnit.MILLISECONDS);
-                        if(!ok) {
+                        if (!ok) {
                             logger.info("loader wait timeout:" + timeout);
                             return newLoader.apply(key);
                         }
@@ -245,7 +277,7 @@ public abstract class AbstractCache<K, V> implements Cache<K, V> {
         } else if (c instanceof MultiLevelCache) {
             c = ((MultiLevelCache) c).caches()[0];
             return buildLoaderLockKey(c, key);
-        } else if(c instanceof ProxyCache) {
+        } else if (c instanceof ProxyCache) {
             c = ((ProxyCache) c).getTargetCache();
             return buildLoaderLockKey(c, key);
         } else {
@@ -287,7 +319,8 @@ public abstract class AbstractCache<K, V> implements Cache<K, V> {
         return result;
     }
 
-    protected abstract CacheResult do_PUT_ALL(Map<? extends K, ? extends V> map, long expireAfterWrite, TimeUnit timeUnit);
+    protected abstract CacheResult do_PUT_ALL(Map<? extends K, ? extends V> map, long expireAfterWrite,
+        TimeUnit timeUnit);
 
     @Override
     public final CacheResult REMOVE(K key) {
@@ -348,5 +381,10 @@ public abstract class AbstractCache<K, V> implements Cache<K, V> {
         Thread loaderThread;
         volatile boolean success;
         volatile Object value;
+    }
+
+    @Override
+    public CacheResult tryAutoDelayExpire(K key, long expireAfterWrite, TimeUnit timeUnit) {
+        return new CacheResult(CacheResultCode.FAIL, "You must implement this method before use it :(");
     }
 }

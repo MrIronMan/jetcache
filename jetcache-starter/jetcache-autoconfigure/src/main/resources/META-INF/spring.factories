@@ -1,2 +1,3 @@
 org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
-com.alicp.jetcache.autoconfigure.JetCacheAutoConfiguration
+com.alicp.jetcache.autoconfigure.JetCacheAutoConfiguration,\
+com.alicp.jetcache.support.config.OnlineConfigProperties

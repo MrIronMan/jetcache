@@ -206,6 +206,7 @@
         <lettuce.version>5.2.2.RELEASE</lettuce.version>
         <jedis.version>3.1.0</jedis.version>
         <redisson.stater.version>3.12.2</redisson.stater.version>
+        <lombok.version>1.18.12</lombok.version>
 
         <!--
         <spring.framework.version>5.1.6.RELEASE</spring.framework.version>
@@ -300,6 +301,13 @@
                 <groupId>org.redisson</groupId>
                 <artifactId>redisson-spring-boot-starter</artifactId>
                 <version>${redisson.stater.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.projectlombok</groupId>
+                <artifactId>lombok</artifactId>
+                <version>${lombok.version}</version>
+                <scope>provided</scope>
             </dependency>
 
             <dependency>

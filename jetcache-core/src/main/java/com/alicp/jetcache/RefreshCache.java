@@ -191,8 +191,10 @@ public class RefreshCache<K, V> extends LoadingCache<K, V> {
                 shouldLoad = true;
             }
 
+
             if (!shouldLoad) {
                 if (multiLevelCache) {
+                    logger.info("refresh cache key=[{}]", key);
                     refreshUpperCaches(key);
                 }
                 return;
@@ -200,10 +202,12 @@ public class RefreshCache<K, V> extends LoadingCache<K, V> {
 
             Runnable r = () -> {
                 try {
+                    logger.info("load cache key=[{}]", key);
                     load();
                     // AbstractExternalCache buildKey method will not convert byte[]
                     concreteCache.put(timestampKey, String.valueOf(System.currentTimeMillis()));
                 } catch (Throwable e) {
+                    logger.error("refresh error");
                     throw new CacheException("refresh error", e);
                 }
             };
