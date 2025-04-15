@@ -8,6 +8,8 @@
     <packaging>pom</packaging>
     <version>2.6.0</version>
 
+
+
     <name>jetcache</name>
     <description>a Java cache abstraction which provides consistent use for various caching solutions</description>
     <url>https://github.com/alibaba/jetcache</url>
